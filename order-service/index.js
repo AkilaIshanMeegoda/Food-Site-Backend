@@ -1,304 +1,279 @@
-// order-service/index.js
 const express = require('express');
+const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
-const morgan = require('morgan');
-const helmet = require('helmet');
-const cors = require('cors');
-const jwt = require('jsonwebtoken');
 const axios = require('axios');
-
 const app = express();
+require('dotenv').config();
 
 // Middleware
-app.use(morgan('combined'));
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
 // Database connection
-let pool;
-async function initDb() {
-  pool = await mysql.createPool({
+const pool = mysql.createPool({
     host: process.env.DB_HOST || 'mysql-order',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '2001',
-    database: process.env.DB_NAME || 'order_db',
+    password: process.env.DB_PASSWORD || 'Akila@1002',
+    database: process.env.DB_NAME || 'order_service',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-  });
+});
 
-  // Create tables if they don't exist
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS orders (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      customer_id INT NOT NULL,
-      restaurant_id INT NOT NULL,
-      status ENUM('pending', 'confirmed', 'preparing', 'ready_for_pickup', 'on_delivery', 'delivered', 'cancelled') DEFAULT 'pending',
-      total_amount DECIMAL(10, 2) NOT NULL,
-      delivery_address TEXT NOT NULL,
-      delivery_instructions TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS order_items (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      order_id INT NOT NULL,
-      menu_item_id INT NOT NULL,
-      quantity INT NOT NULL DEFAULT 1,
-      price_at_order DECIMAL(10, 2) NOT NULL,
-      special_instructions TEXT,
-      FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
-    )
-  `);
-}
-
-// JWT secret
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// Middleware to verify JWT
-const authenticate = (roles = []) => async (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+const waitForDatabase = async () => {
+    let connected = false;
+    while (!connected) {
+        try {
+            const connection = await pool.getConnection();
+            console.log("✅ Connected to MySQL!");
+            connection.release();
+            connected = true;
+        } catch (error) {
+            console.log("⏳ Waiting for MySQL to be ready...");
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
+        }
     }
-    
-    const decoded = jwt.verify(token, JWT_SECRET);
-    
-    if (roles.length && !roles.includes(decoded.role)) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-    
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
 };
 
+// Wait for MySQL before initializing the database
+waitForDatabase().then(() => {
+    initializeDatabase();
+});
+
 // Routes
-// Create order (customer only)
-app.post('/', authenticate(['customer']), async (req, res) => {
-  try {
-    const { restaurant_id, items, delivery_address, delivery_instructions } = req.body;
-    
-    if (!restaurant_id || !items || !delivery_address || items.length === 0) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-    
-    // Verify restaurant exists and get menu items
-    const restaurantResponse = await axios.get(`http://restaurant-service:3002/${restaurant_id}`);
-    const restaurant = restaurantResponse.data;
-    
-    // Calculate total and validate items
-    let total = 0;
-    const orderItems = [];
-    
-    for (const item of items) {
-      const menuItem = restaurant.menu.find(mi => mi.id === item.menu_item_id);
-      
-      if (!menuItem) {
-        return res.status(400).json({ error: `Menu item ${item.menu_item_id} not found` });
-      }
-      
-      if (!menuItem.is_available) {
-        return res.status(400).json({ error: `Menu item ${menuItem.name} is not available` });
-      }
-      
-      const quantity = item.quantity || 1;
-      total += menuItem.price * quantity;
-      
-      orderItems.push({
-        menu_item_id: menuItem.id,
-        quantity,
-        price_at_order: menuItem.price,
-        special_instructions: item.special_instructions
-      });
-    }
-    
-    // Create order
-    const [orderResult] = await pool.query(
-      'INSERT INTO orders (customer_id, restaurant_id, total_amount, delivery_address, delivery_instructions) VALUES (?, ?, ?, ?, ?)',
-      [req.user.userId, restaurant_id, total, delivery_address, delivery_instructions]
-    );
-    
-    // Add order items
-    for (const item of orderItems) {
-      await pool.query(
-        'INSERT INTO order_items (order_id, menu_item_id, quantity, price_at_order, special_instructions) VALUES (?, ?, ?, ?, ?)',
-        [orderResult.insertId, item.menu_item_id, item.quantity, item.price_at_order, item.special_instructions]
-      );
-    }
-    
-    // Get full order details
-    const [order] = await pool.query('SELECT * FROM orders WHERE id = ?', [orderResult.insertId]);
-    const [itemsResult] = await pool.query('SELECT * FROM order_items WHERE order_id = ?', [orderResult.insertId]);
-    
-    // Notify restaurant (in a real app, this would be async via message queue)
+app.post('/orders', async (req, res) => {
     try {
-      await axios.post('http://notification-service:3006/notify', {
-        type: 'new_order',
-        order_id: orderResult.insertId,
-        restaurant_id,
-        customer_id: req.user.userId
-      });
-    } catch (notifyErr) {
-      console.error('Failed to send notification:', notifyErr);
+        const { customer_id, restaurant_id, items, delivery_address, special_instructions } = req.body;
+        
+        // Calculate total price
+        let total_price = 0;
+        const menuItems = [];
+        
+        // Get menu items from restaurant service
+        try {
+            const response = await axios.get(`http://restaurant-service:3002/restaurants/${restaurant_id}/menu`);
+            menuItems.push(...response.data);
+        } catch (error) {
+            console.error('Error fetching menu items:', error);
+            return res.status(400).json({ error: 'Failed to fetch menu items' });
+        }
+        
+        // Validate items and calculate total
+        for (const item of items) {
+            const menuItem = menuItems.find(mi => mi.id === item.menu_item_id);
+            if (!menuItem) {
+                return res.status(400).json({ error: `Menu item with ID ${item.menu_item_id} not found` });
+            }
+            if (!menuItem.is_available) {
+                return res.status(400).json({ error: `Menu item with ID ${item.menu_item_id} is not available` });
+            }
+            total_price += menuItem.price * item.quantity;
+        }
+        
+        // Start transaction
+        const connection = await pool.getConnection();
+        await connection.beginTransaction();
+        
+        try {
+            // Create order
+            const [orderResult] = await connection.execute(
+                'INSERT INTO orders (customer_id, restaurant_id, total_price, status, delivery_address, special_instructions) VALUES (?, ?, ?, ?, ?, ?)',
+                [customer_id, restaurant_id, total_price, 'pending', delivery_address, special_instructions]
+            );
+            
+            const orderId = orderResult.insertId;
+            
+            // Add order items
+            for (const item of items) {
+                await connection.execute(
+                    'INSERT INTO order_items (order_id, menu_item_id, quantity, price_at_order) VALUES (?, ?, ?, ?)',
+                    [orderId, item.menu_item_id, item.quantity, menuItems.find(mi => mi.id === item.menu_item_id).price]
+                );
+            }
+            
+            // Commit transaction
+            await connection.commit();
+            connection.release();
+            
+            // Notify restaurant (in a real app, this would be async)
+            try {
+                await axios.post('http://notification-service:3005/notifications', {
+                    type: 'new_order',
+                    recipient_id: restaurant_id,
+                    recipient_type: 'restaurant',
+                    message: `New order #${orderId} received`,
+                    data: { order_id: orderId }
+                });
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                // Not critical, continue
+            }
+            
+            res.status(201).json({ 
+                message: 'Order created successfully',
+                orderId,
+                total_price
+            });
+        } catch (error) {
+            // Rollback on error
+            await connection.rollback();
+            connection.release();
+            throw error;
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-    
-    res.status(201).json({
-      ...order[0],
-      items: itemsResult
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create order' });
-  }
 });
 
-// Get order by ID
-app.get('/:id', authenticate(), async (req, res) => {
-  try {
-    const [orders] = await pool.query('SELECT * FROM orders WHERE id = ?', [req.params.id]);
-    
-    if (orders.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
-    
-    const order = orders[0];
-    
-    // Check if user is authorized to view this order
-    if (req.user.role === 'customer' && order.customer_id !== req.user.userId) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-    
-    if (req.user.role === 'restaurant_admin') {
-      // Verify the restaurant belongs to the requesting user
-      const [restaurants] = await pool.query('SELECT * FROM restaurants WHERE id = ? AND owner_id = ?', [order.restaurant_id, req.user.userId]);
-      
-      if (restaurants.length === 0) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
-    }
-    
-    const [items] = await pool.query('SELECT * FROM order_items WHERE order_id = ?', [req.params.id]);
-    
-    res.json({
-      ...order,
-      items
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch order' });
-  }
-});
-
-// Get orders for current user
-app.get('/', authenticate(), async (req, res) => {
-  try {
-    let query = '';
-    let params = [];
-    
-    if (req.user.role === 'customer') {
-      query = 'SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC';
-      params = [req.user.userId];
-    } else if (req.user.role === 'restaurant_admin') {
-      query = `
-        SELECT o.* FROM orders o
-        JOIN restaurants r ON o.restaurant_id = r.id
-        WHERE r.owner_id = ?
-        ORDER BY o.created_at DESC
-      `;
-      params = [req.user.userId];
-    } else if (req.user.role === 'delivery_personnel') {
-      query = `
-        SELECT o.* FROM orders o
-        JOIN deliveries d ON o.id = d.order_id
-        WHERE d.delivery_person_id = ?
-        ORDER BY o.created_at DESC
-      `;
-      params = [req.user.userId];
-    } else {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-    
-    const [orders] = await pool.query(query, params);
-    res.json(orders);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch orders' });
-  }
-});
-
-// Update order status (restaurant admin or delivery personnel)
-app.patch('/:id/status', authenticate(['restaurant_admin', 'delivery_personnel']), async (req, res) => {
-  try {
-    const { status } = req.body;
-    
-    if (!status) {
-      return res.status(400).json({ error: 'Status is required' });
-    }
-    
-    // Get current order
-    const [orders] = await pool.query('SELECT * FROM orders WHERE id = ?', [req.params.id]);
-    
-    if (orders.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
-    
-    const order = orders[0];
-    
-    // Authorization checks
-    if (req.user.role === 'restaurant_admin') {
-      // Verify the restaurant belongs to the requesting user
-      const [restaurants] = await pool.query('SELECT * FROM restaurants WHERE id = ? AND owner_id = ?', [order.restaurant_id, req.user.userId]);
-      
-      if (restaurants.length === 0) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
-    } else if (req.user.role === 'delivery_personnel') {
-      // Verify the delivery is assigned to this personnel
-      const [deliveries] = await pool.query('SELECT * FROM deliveries WHERE order_id = ? AND delivery_person_id = ?', [req.params.id, req.user.userId]);
-      
-      if (deliveries.length === 0) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
-    }
-    
-    // Update status
-    await pool.query('UPDATE orders SET status = ? WHERE id = ?', [status, req.params.id]);
-    
-    // Notify customer (in a real app, this would be async via message queue)
+app.get('/orders/:id', async (req, res) => {
     try {
-      await axios.post('http://notification-service:3006/notify', {
-        type: 'order_status_update',
-        order_id: req.params.id,
-        new_status: status,
-        customer_id: order.customer_id
-      });
-    } catch (notifyErr) {
-      console.error('Failed to send notification:', notifyErr);
+        const { id } = req.params;
+        
+        const [orders] = await pool.execute(
+            'SELECT * FROM orders WHERE id = ?',
+            [id]
+        );
+        
+        if (orders.length === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+        
+        const order = orders[0];
+        
+        // Get order items
+        const [items] = await pool.execute(
+            'SELECT * FROM order_items WHERE order_id = ?',
+            [id]
+        );
+        
+        order.items = items;
+        
+        res.json(order);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-    
-    res.json({ message: 'Order status updated' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to update order status' });
-  }
 });
 
-// Initialize database and start server
-initDb().then(() => {
-  const PORT = process.env.PORT || 3003;
-  app.listen(PORT, () => {
+app.get('/customers/:customerId/orders', async (req, res) => {
+    try {
+        const { customerId } = req.params;
+        
+        const [orders] = await pool.execute(
+            'SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC',
+            [customerId]
+        );
+        
+        res.json(orders);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.get('/restaurants/:restaurantId/orders', async (req, res) => {
+    try {
+        const { restaurantId } = req.params;
+        
+        const [orders] = await pool.execute(
+            'SELECT * FROM orders WHERE restaurant_id = ? ORDER BY created_at DESC',
+            [restaurantId]
+        );
+        
+        res.json(orders);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.put('/orders/:id/status', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        // Validate status
+        if (!['pending', 'accepted', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled'].includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+        
+        const [result] = await pool.execute(
+            'UPDATE orders SET status = ? WHERE id = ?',
+            [status, id]
+        );
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+        
+        // Notify customer if status changed to certain values
+        if (['accepted', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled'].includes(status)) {
+            try {
+                // Get order to find customer_id
+                const [orders] = await pool.execute('SELECT customer_id FROM orders WHERE id = ?', [id]);
+                if (orders.length > 0) {
+                    await axios.post('http://notification-service:3005/notifications', {
+                        type: 'order_status',
+                        recipient_id: orders[0].customer_id,
+                        recipient_type: 'customer',
+                        message: `Order #${id} status updated to ${status}`,
+                        data: { order_id: id, status }
+                    });
+                }
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                // Not critical, continue
+            }
+        }
+        
+        res.json({ message: 'Order status updated successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Start server
+const PORT = process.env.PORT || 3003;
+app.listen(PORT, () => {
     console.log(`Order service running on port ${PORT}`);
-  });
-}).catch(err => {
-  console.error('Database initialization failed:', err);
-  process.exit(1);
 });
+
+// Initialize database
+async function initializeDatabase() {
+    try {
+        const connection = await pool.getConnection();
+        
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS orders (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                customer_id INT NOT NULL,
+                restaurant_id INT NOT NULL,
+                total_price DECIMAL(10, 2) NOT NULL,
+                status ENUM('pending', 'accepted', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled') DEFAULT 'pending',
+                delivery_address TEXT NOT NULL,
+                special_instructions TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        `);
+        
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS order_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                order_id INT NOT NULL,
+                menu_item_id INT NOT NULL,
+                quantity INT NOT NULL,
+                price_at_order DECIMAL(10, 2) NOT NULL,
+                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+            )
+        `);
+        
+        connection.release();
+        console.log('Order service database initialized');
+    } catch (error) {
+        console.error('Database initialization error:', error);
+    }
+}
+
+initializeDatabase();

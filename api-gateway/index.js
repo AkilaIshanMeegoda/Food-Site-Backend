@@ -1,69 +1,39 @@
-// api-gateway/index.js
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const morgan = require('morgan');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const cors = require('cors');
-
+const jwt = require('jsonwebtoken');
 const app = express();
+require('dotenv').config();
 
-// Middleware
-app.use(morgan('combined'));
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
+// Middleware to verify JWT
+const authenticateJWT = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        
+        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+            if (err) {
+                return res.sendStatus(403);
+            }
+            
+            req.user = user;
+            next();
+        });
+    } else {
+        res.sendStatus(401);
+    }
+};
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
+// Routes
+app.use('/users', createProxyMiddleware({ target: 'http://user-service:3001', changeOrigin: true }));
+app.use('/restaurants', authenticateJWT, createProxyMiddleware({ target: 'http://restaurant-service:3002', changeOrigin: true }));
+app.use('/orders', authenticateJWT, createProxyMiddleware({ target: 'http://order-service:3003', changeOrigin: true }));
+app.use('/deliveries', authenticateJWT, createProxyMiddleware({ target: 'http://delivery-service:3004', changeOrigin: true }));
+app.use('/notifications', authenticateJWT, createProxyMiddleware({ target: 'http://notification-service:3005', changeOrigin: true }));
+app.use('/payments', authenticateJWT, createProxyMiddleware({ target: 'http://payment-service:3006', changeOrigin: true }));
 
-// Service routes
-app.use('/auth', createProxyMiddleware({ 
-  target: 'http://auth-service:3001', 
-  changeOrigin: true 
-}));
-
-app.use('/restaurants', createProxyMiddleware({ 
-  target: 'http://restaurant-service:3002', 
-  changeOrigin: true 
-}));
-
-app.use('/orders', createProxyMiddleware({ 
-  target: 'http://order-service:3003', 
-  changeOrigin: true 
-}));
-
-app.use('/delivery', createProxyMiddleware({ 
-  target: 'http://delivery-service:3004', 
-  changeOrigin: true 
-}));
-
-app.use('/payments', createProxyMiddleware({ 
-  target: 'http://payment-service:3005', 
-  changeOrigin: true 
-}));
-
-app.use('/notifications', createProxyMiddleware({ 
-  target: 'http://notification-service:3006', 
-  changeOrigin: true 
-}));
-
-// Health check
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
-});
-
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
-
-const PORT = process.env.PORT || 3010;
+// Start server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`API Gateway running on port ${PORT}`);
+    console.log(`API Gateway running on port ${PORT}`);
 });

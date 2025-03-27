@@ -1,5 +1,5 @@
 {
-    "name": "restaurant-service",
+    "name": "user-service",
     "version": "1.0.0",
     "description": "User service for food delivery system",
     "main": "index.js",

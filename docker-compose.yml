@@ -1,107 +1,168 @@
 version: '3.8'
 
 services:
-  # API Gateway (unchanged)
   api-gateway:
     build: ./api-gateway
     ports:
-      - "3010:3010"
+      - "3000:3000"
     environment:
-      - PORT=3010
+      - JWT_SECRET=your-secret-key
     depends_on:
-      - mysql-auth
+      - user-service
+      - restaurant-service
+      - order-service
+      - delivery-service
+      - notification-service
+      - payment-service
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "3001:3001"
+    environment:
+      - DB_HOST=mysql-user
+      - DB_USER=root
+      - DB_PASSWORD=Akila@1002
+      - DB_NAME=user_service
+      - JWT_SECRET=your-secret-key
+    depends_on:
+      - mysql-user
+
+  restaurant-service:
+    build: ./restaurant-service
+    ports:
+      - "3002:3002"
+    environment:
+      - DB_HOST=mysql-restaurant
+      - DB_USER=root
+      - DB_PASSWORD=Akila@1002
+      - DB_NAME=restaurant_service
+    depends_on:
       - mysql-restaurant
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3003:3003"
+    environment:
+      - DB_HOST=mysql-order
+      - DB_USER=root
+      - DB_PASSWORD=Akila@1002
+      - DB_NAME=order_service
+    depends_on:
       - mysql-order
+      - restaurant-service
+      - notification-service
+
+  delivery-service:
+    build: ./delivery-service
+    ports:
+      - "3004:3004"
+    environment:
+      - DB_HOST=mysql-delivery
+      - DB_USER=root
+      - DB_PASSWORD=Akila@1002
+      - DB_NAME=delivery_service
+    depends_on:
       - mysql-delivery
-      - mysql-payment
+      - order-service
+      - notification-service
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "3005:3005"
+    environment:
+      - DB_HOST=mysql-notification
+      - DB_USER=root
+      - DB_PASSWORD=Akila@1002
+      - DB_NAME=notification_service
+      - EMAIL_HOST=sandbox.smtp.mailtrap.io
+      - EMAIL_PORT=2525
+      - EMAIL_USER=your-mailtrap-user
+      - EMAIL_PASS=your-mailtrap-pass
+    depends_on:
       - mysql-notification
-    networks:
-      - food-delivery-network
 
-  # All other services remain the same as before, just updating the MySQL sections:
+  payment-service:
+    build: ./payment-service
+    ports:
+      - "3006:3006"
+    environment:
+      - DB_HOST=mysql-payment
+      - DB_USER=root
+      - DB_PASSWORD=Akila@1002
+      - DB_NAME=payment_service
+    depends_on:
+      - mysql-payment
+      - order-service
+      - notification-service
 
-  # MySQL Databases - Updated with your password
-  mysql-auth:
+  mysql-user:
     image: mysql:8.0
     environment:
-      - MYSQL_ROOT_PASSWORD=2001  # Updated password
-      - MYSQL_DATABASE=auth_db
+      - MYSQL_ROOT_PASSWORD=Akila@1002
+      - MYSQL_DATABASE=user_service
     ports:
-      - "3307:3306"  # Different port to avoid conflict with your local MySQL
+      - "3307:3306"
     volumes:
-      - mysql-auth-data:/var/lib/mysql
-    networks:
-      - food-delivery-network
+      - mysql-user-data:/var/lib/mysql
+    restart: always
 
   mysql-restaurant:
     image: mysql:8.0
     environment:
-      - MYSQL_ROOT_PASSWORD=2001  # Updated password
-      - MYSQL_DATABASE=restaurant_db
+      - MYSQL_ROOT_PASSWORD=Akila@1002
+      - MYSQL_DATABASE=restaurant_service
     ports:
-      - "3308:3306"  # Different port
+      - "3308:3306"
     volumes:
       - mysql-restaurant-data:/var/lib/mysql
-    networks:
-      - food-delivery-network
 
   mysql-order:
     image: mysql:8.0
     environment:
-      - MYSQL_ROOT_PASSWORD=2001  # Updated password
-      - MYSQL_DATABASE=order_db
+      - MYSQL_ROOT_PASSWORD=Akila@1002
+      - MYSQL_DATABASE=order_service
     ports:
-      - "3309:3306"  # Different port
+      - "3309:3306"
     volumes:
       - mysql-order-data:/var/lib/mysql
-    networks:
-      - food-delivery-network
 
   mysql-delivery:
     image: mysql:8.0
     environment:
-      - MYSQL_ROOT_PASSWORD=2001  # Updated password
-      - MYSQL_DATABASE=delivery_db
+      - MYSQL_ROOT_PASSWORD=Akila@1002
+      - MYSQL_DATABASE=delivery_service
     ports:
-      - "3310:3306"  # Different port
+      - "3310:3306"
     volumes:
       - mysql-delivery-data:/var/lib/mysql
-    networks:
-      - food-delivery-network
-
-  mysql-payment:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=2001  # Updated password
-      - MYSQL_DATABASE=payment_db
-    ports:
-      - "3311:3306"  # Different port
-    volumes:
-      - mysql-payment-data:/var/lib/mysql
-    networks:
-      - food-delivery-network
 
   mysql-notification:
     image: mysql:8.0
     environment:
-      - MYSQL_ROOT_PASSWORD=2001  # Updated password
-      - MYSQL_DATABASE=notification_db
+      - MYSQL_ROOT_PASSWORD=Akila@1002
+      - MYSQL_DATABASE=notification_service
     ports:
-      - "3312:3306"  # Different port
+      - "3311:3306"
     volumes:
       - mysql-notification-data:/var/lib/mysql
-    networks:
-      - food-delivery-network
 
-# The rest of your docker-compose.yml remains unchanged
+  mysql-payment:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=Akila@1002
+      - MYSQL_DATABASE=payment_service
+    ports:
+      - "3312:3306"
+    volumes:
+      - mysql-payment-data:/var/lib/mysql
+
 volumes:
-  mysql-auth-data:
+  mysql-user-data:
   mysql-restaurant-data:
   mysql-order-data:
   mysql-delivery-data:
-  mysql-payment-data:
   mysql-notification-data:
-
-networks:
-  food-delivery-network:
-    driver: bridge
+  mysql-payment-data:
