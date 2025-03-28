@@ -1,20 +1,24 @@
 {
-    "name": "notification-service",
+    "name": "food-delivery-backend",
     "version": "1.0.0",
-    "description": "User service for food delivery system",
-    "main": "index.js",
+    "description": "Cloud-Native Food Ordering & Delivery System Backend",
+    "main": "app.js",
     "scripts": {
-      "start": "node index.js"
+      "start": "node app.js",
+      "dev": "nodemon app.js"
     },
     "dependencies": {
       "express": "^4.21.2",
-      "mysql2": "^3.14.0",
-      "bcrypt": "^5.1.1",
+      "mongoose": "^8.13.0",
       "jsonwebtoken": "^9.0.2",
-      "body-parser": "^2.2.0",
-      "dotenv": "^16.4.7",
-      "nodemailer":"^6.10.0",
-      "axios":"^1.8.4",
-      "http-proxy-middleware":"^3.0.3"
+      "bcryptjs": "^3.0.2",
+      "cors": "^2.8.5",
+      "uuid": "^11.1.0",
+      "http-proxy":"^1.18.1",
+      "axios": "^1.8.4",
+      "nodemailer":"^6.10.0"
+    },
+    "devDependencies": {
+      "nodemon": "^3.1.9"
     }
   }
