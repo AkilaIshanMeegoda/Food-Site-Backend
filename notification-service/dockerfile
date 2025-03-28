@@ -1,14 +1,13 @@
-FROM node:20-alpine
+FROM node:16
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY package*.json ./
 
 RUN npm install
-RUN npm install nodemailer
 
 COPY . .
 
-EXPOSE 3006
+EXPOSE 5005
 
-CMD ["node", "app.js"]
+CMD ["node", "index.js"]
