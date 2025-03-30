@@ -4,8 +4,8 @@
     "description": "Cloud-Native Food Ordering & Delivery System Backend",
     "main": "app.js",
     "scripts": {
-      "start": "node app.js",
-      "dev": "nodemon app.js"
+      "start": "node index.js",
+      "dev": "nodemon index.js"
     },
     "dependencies": {
       "express": "^4.21.2",

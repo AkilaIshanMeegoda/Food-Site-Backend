@@ -97,7 +97,7 @@ app.post("/login", async (req, res) => {
                 restaurantId: user.restaurantId
             },
             JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "24d" }
         );
 
         res.status(200).json({
