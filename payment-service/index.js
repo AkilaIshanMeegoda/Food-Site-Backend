@@ -7,7 +7,7 @@ const app = express();
 const port = process.env.PORT || 5004;
 
 // MongoDB connection
-mongoose.connect("mongodb+srv://akila:2001@cluster0.awsiu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+mongoose.connect("mongodb+srv://foodApp:2001@cluster0.afkbz0b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
 
 // Payment Schema
 const Payment = mongoose.model("Payment", {
