@@ -171,7 +171,7 @@ app.get("/orders/restaurant", verifyToken, async (req, res) => {
 
     try {
         // Get restaurant ID for this admin
-        const restaurantResponse = await axios.get(`http://restaurant-service:5001/restaurants/my-restaurant`, {
+        const restaurantResponse = await axios.get(`http://localhost:5001/restaurants/my-restaurant`, {
             headers: { Authorization: req.header("Authorization") }
         });
         
@@ -322,7 +322,7 @@ app.put("/orders/:id/delivered", verifyToken, async (req, res) => {
 
         // Process payment
         try {
-            await axios.post(`http://payment-service:5004/payments/process`, {
+            await axios.post(`http://localhost:5004/payments/process`, {
                 orderId: order._id,
                 amount: order.totalAmount,
                 customerId: order.customerId
