@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // MongoDB connection
-mongoose.connect("mongodb+srv://akila:2001@cluster0.awsiu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+mongoose.connect("mongodb+srv://foodApp:2001@cluster0.afkbz0b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
 
 // User Schema
 const User = mongoose.model("User", {
@@ -97,7 +97,7 @@ app.post("/login", async (req, res) => {
                 restaurantId: user.restaurantId
             },
             JWT_SECRET,
-            { expiresIn: "24d" }
+            { expiresIn: "24h" } // Changed from "24d" to "24h" for better security
         );
 
         res.status(200).json({
@@ -110,10 +110,21 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// Middleware to verify JWT Token
+// Middleware to verify JWT Token with Bearer prefix
 function verifyToken(req, res, next) {
-    const token = req.header("Authorization");
-    if (!token) return res.status(401).json({ error: "Access denied" });
+    const authHeader = req.header("Authorization");
+    
+    if (!authHeader) {
+        return res.status(401).json({ error: "Access denied. No token provided" });
+    }
+
+    // Check if the header has the Bearer prefix
+    const parts = authHeader.split(' ');
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+        return res.status(401).json({ error: "Invalid token format. Use Bearer <token>" });
+    }
+
+    const token = parts[1];
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
@@ -124,7 +135,7 @@ function verifyToken(req, res, next) {
     }
 }
 
-// Protected Route (Example)
+// Protected Route (Example) - Now properly requires Bearer token
 app.get("/profile", verifyToken, async (req, res) => {
     const userId = req.user.userId;
     const user = await User.findById(userId);
@@ -137,7 +148,7 @@ app.get("/profile", verifyToken, async (req, res) => {
     });
 });
 
-// Get user role
+// Get user role - Now properly requires Bearer token
 app.get("/users/:userId/role", verifyToken, async (req, res) => {
     try {
         const user = await User.findById(req.params.userId);
