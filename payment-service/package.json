@@ -1,7 +1,7 @@
 {
-    "name": "food-delivery-backend",
+    "name": "food-delivery-paymetn-service",
     "version": "1.0.0",
-    "description": "Cloud-Native Food Ordering & Delivery System Backend",
+    "description": "Cloud-Native Food Ordering & Delivery System Payment Service",
     "main": "app.js",
     "scripts": {
       "start": "node index.js",
