@@ -1,10 +1,11 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const mongoose = require("mongoose");
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
+import 'dotenv/config';
 
 const app = express();
-const port = process.env.PORT || 5004;
+const PORT = process.env.PORT || 5004;
 
 // MongoDB connection
 mongoose.connect("mongodb+srv://foodApp:2001@cluster0.afkbz0b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
