@@ -5,10 +5,12 @@ import bodyParser from 'body-parser';
 import 'dotenv/config';
 
 const app = express();
+
 const PORT = process.env.PORT || 5004;
+const MONGODB_CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING;
 
 // MongoDB connection
-mongoose.connect("mongodb+srv://foodApp:2001@cluster0.afkbz0b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+mongoose.connect(MONGODB_CONNECTION_STRING);
 
 // Payment Schema
 const Payment = mongoose.model("Payment", {
@@ -88,6 +90,6 @@ app.get("/payments/order/:orderId", async (req, res) => {
 });
 
 // Start server
-app.listen(port, () => {
-    console.log(`Payment service started at http://localhost:${port}`);
+app.listen(PORT, () => {
+    console.log(`Payment service started at http://localhost:${PORT}`);
 });
