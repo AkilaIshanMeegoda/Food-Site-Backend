@@ -10,3 +10,14 @@ exports.assignDriver = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.acceptDelivery = async (req, res) => {
+    try {
+      const { orderId, deliveryPersonnelId } = req.body;
+      const result = await deliveryService.acceptDelivery(orderId, deliveryPersonnelId);
+      res.status(result.status).json(result.data);
+    } catch (error) {
+      console.error('Error in acceptDelivery:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };

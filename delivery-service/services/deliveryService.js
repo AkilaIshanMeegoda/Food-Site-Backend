@@ -69,3 +69,23 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
     return { status: 500, data: { message: 'Server error' } };
   }
 };
+
+exports.acceptDelivery = async (orderId, deliveryPersonnelId) => {
+    try {
+      const delivery = await Delivery.findOne({ orderId, deliveryPersonnelId });
+  
+      if (!delivery) {
+        return { status: 404, data: { message: 'Delivery not found' } };
+      }
+  
+      delivery.status = 'accepted';
+      await delivery.save();
+  
+      await DeliveryPersonnel.updateOne({ _id: deliveryPersonnelId }, { status: 'busy' });
+  
+      return { status: 200, data: { message: 'Delivery accepted' } };
+    } catch (error) {
+      console.error('Error in acceptDelivery:', error);
+      return { status: 500, data: { message: 'Server error' } };
+    }
+  };
