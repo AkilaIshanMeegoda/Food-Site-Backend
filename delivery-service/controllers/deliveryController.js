@@ -1,7 +1,10 @@
 const deliveryService = require('../services/deliveryService');
 
+//automatically assign the nearest and available delivery personnel for a order 
 exports.assignDriver = async (req, res) => {
   try {
+    //pickupAdress - Restaurant Address
+    //dropoffAddress - Delivery Address
     const { orderId, pickupAddress, dropoffAddress } = req.body;
     const result = await deliveryService.assignDriver(orderId, pickupAddress, dropoffAddress);
     res.status(result.status).json(result.data);
@@ -11,6 +14,7 @@ exports.assignDriver = async (req, res) => {
   }
 };
 
+//accept delivery by the delivery personnel
 exports.acceptDelivery = async (req, res) => {
     try {
       const { orderId, deliveryPersonnelId } = req.body;
@@ -18,6 +22,19 @@ exports.acceptDelivery = async (req, res) => {
       res.status(result.status).json(result.data);
     } catch (error) {
       console.error('Error in acceptDelivery:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
+  //update delivery status by delivery personnel
+  exports.updateStatus = async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const { status } = req.body;
+      const result = await deliveryService.updateStatus(orderId, status);
+      res.status(result.status).json(result.data);
+    } catch (error) {
+      console.error('Error in updateStatus:', error);
       res.status(500).json({ message: 'Server error' });
     }
   };

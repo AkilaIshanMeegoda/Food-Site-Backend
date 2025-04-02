@@ -5,6 +5,7 @@ const DeliveryPersonnel = require('../models/DeliveryPersonnel');
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 
+//Automatically assign a nearest and available delivery personnel for a order
 exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
   try {
     console.log('Assigning for Order ID:', orderId);
@@ -41,6 +42,7 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
         { latitude: pickup.lat, longitude: pickup.lng }
       );
 
+      //find the nearest delievry personnel
       if (distance < shortestDistance) {
         shortestDistance = distance;
         nearestDriver = driver;
@@ -70,6 +72,8 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
   }
 };
 
+
+//accept the delivery by driver
 exports.acceptDelivery = async (orderId, deliveryPersonnelId) => {
     try {
       const delivery = await Delivery.findOne({ orderId, deliveryPersonnelId });
@@ -86,6 +90,29 @@ exports.acceptDelivery = async (orderId, deliveryPersonnelId) => {
       return { status: 200, data: { message: 'Delivery accepted' } };
     } catch (error) {
       console.error('Error in acceptDelivery:', error);
+      return { status: 500, data: { message: 'Server error' } };
+    }
+  };
+
+  
+exports.updateStatus = async (orderId, status) => {
+    try {
+      const delivery = await Delivery.findOne({ orderId });
+  
+      if (!delivery) {
+        return { status: 404, data: { message: 'Delivery not found' } };
+      }
+  
+      delivery.status = status;
+      await delivery.save();
+  
+      if (status === 'delivered') {
+        await DeliveryPersonnel.updateOne({ _id: delivery.deliveryPersonnelId }, { status: 'available' });
+      }
+  
+      return { status: 200, data: { message: 'Delivery status updated' } };
+    } catch (error) {
+      console.error('Error in updateStatus:', error);
       return { status: 500, data: { message: 'Server error' } };
     }
   };
