@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 
 // Import routes
 const deliveryPersonnelRoute = require("./routes/deliveryPersonnelRoute");
+const deliveryRoute = require("./routes/deliveryRoute");
 const connectDB = require("./config/db");
 
 dotenv.config(); // Load environment variables from .env file
@@ -22,6 +23,7 @@ app.use(cors({ origin: "*" }));
 
 // Use Routes
 app.use("/delivery-personnel", deliveryPersonnelRoute);
+app.use('/delivery', deliveryRoute);
 
 // Start server
 app.listen(port, () => {
