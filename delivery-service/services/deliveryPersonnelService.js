@@ -1,5 +1,6 @@
 const DeliveryPersonnel = require("../../delivery-service/models/DeliveryPersonnel");
 const axios = require('axios');
+const Delivery = require("../models/Delivery");
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 
@@ -45,7 +46,19 @@ const getDeliveryPersonnelProfile = async (userId) => {
   return personnel;
 };
 
+const getDeliveriesByPersonnel = async (deliveryPersonnelId) => {
+  try {
+    const deliveries = await Delivery.find({ deliveryPersonnelId });
+    return { status: 200, data: deliveries };
+  } catch (error) {
+    console.error("Error in getDeliveriesByPersonnel:", error);
+    return { status: 500, data: { message: "Server error" } };
+  }
+};
+
+
 module.exports = {
   registerDeliveryPersonnel,
   getDeliveryPersonnelProfile,
+  getDeliveriesByPersonnel
 };
