@@ -42,13 +42,33 @@ exports.getMenuItemsByCategory = async (req, res) => {
     }
 };
 
-exports.getMenuItemsByCategory = async (req, res) => {
+exports.getAllMenuItemsByCategory = async (req, res) => {
     try {
         const { category } = req.params;
-        const menuItems = await MenuItemService.getMenuItemsByCategory(category);
+        const menuItems = await MenuItemService.getAllMenuItemsByCategory(category);
         res.status(200).json(menuItems);
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch menu items by category" });
     }
 };
+
+exports.getAllAvailableMenuItems = async (req, res) => {
+    try {
+        const menuItems = await MenuItemService.getAllAvailableMenuItems();
+        console.log("check all items v", menuItems);
+        res.status(200).json(menuItems);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch menu items" });
+    }
+};
+
+exports.viewItemDetail = async (req, res) => {
+    try {
+        console.log("check details", req.params.id);
+        const menuItem = await MenuItemService.viewItemDetail(req.params.id);
+        res.status(200).json(menuItem);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch menu item" });
+    }
+}
 

@@ -35,3 +35,13 @@ exports.deleteMenuItem = async (req, res) => {
         res.status(500).json({ error: "Failed to delete menu item" });
     }
 };
+
+exports.viewMenuItem = async (req, res) => {
+    try {
+        console.log("check details", req.params.id, req.user.userId);
+        const menuItem = await menuItemService.getMenuItem(req.params.id, req.user.userId);
+        res.status(200).json(menuItem);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch menu item" });
+    }
+}

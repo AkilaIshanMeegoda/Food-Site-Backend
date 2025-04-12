@@ -4,6 +4,7 @@ const menuItemController = require("../controllers/menuItemController");
 const { verifyRestaurantAdmin }  = require("../auth/middleware");
 
 router.post("/", verifyRestaurantAdmin, menuItemController.createMenuItem);
+router.get("/:id", verifyRestaurantAdmin, menuItemController.viewMenuItem);
 router.get("/", verifyRestaurantAdmin, menuItemController.getMenuItems);
 router.put("/:id", verifyRestaurantAdmin, menuItemController.updateMenuItem);
 router.delete("/:id", verifyRestaurantAdmin, menuItemController.deleteMenuItem);

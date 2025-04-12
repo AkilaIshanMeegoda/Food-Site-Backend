@@ -9,8 +9,11 @@ router.get("/restaurants/:id/menu-items", publicController.getMenuItemsByRestaur
 
 router.get("/restaurants/:id", publicController.getRestaurantById);
 
+router.get("/menu-items/:id", publicController.viewItemDetail);
+
 router.get("/restaurants/:id/menu-items/category/:category", publicController.getMenuItemsByCategory);
 
-router.get("/menu-items/category/:category", publicController.getMenuItemsByCategory);
+router.get("/menu-items/category/:category", publicController.getAllMenuItemsByCategory);
 
+router.get('/all-menu-items', publicController.getAllAvailableMenuItems);
 module.exports = router;
