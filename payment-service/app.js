@@ -19,7 +19,6 @@ if (!MONGODB_CONNECTION_STRING) {
 const app = express();
 
 // Middleware
-app.use(bodyParser.json());
 app.use(cors({ origin: "*" }));
 
 app.use('/api/payment', paymentRoutes);
