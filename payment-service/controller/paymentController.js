@@ -1,8 +1,10 @@
 import Stripe from 'stripe';
 import 'dotenv/config';
+import Payment from '../model/paymentModel.js';
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const CLIENT_PORT = process.env.CLIENT_PORT || 9000;
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
 
 let stripe;
 if (!STRIPE_SECRET_KEY) {
@@ -62,6 +64,7 @@ export const createCheckoutSession = async (req, res) => {
     }
 
     res.redirect(303, session.url);
+    console.log(session.url)
 
   } catch (err) {
     console.error('Error processing payment:', err);
@@ -76,3 +79,38 @@ export const createCheckoutSession = async (req, res) => {
     res.status(500).json({ error: errorMessage });
   }
 };
+
+export const handleWebhookEvent = async (req, res) => {
+  try {
+    const sig = req.headers['stripe-signature'];
+    const event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
+
+    if (event.type === 'checkout.session.completed') {
+      console.log("Checkout session completed!");
+
+      try {
+        
+        // Stripe amounts are in cents; convert to LKR.
+        const totalAmount = (event.data.object.amount_total)/100;
+
+        await Payment.create({
+          checkoutSessionId: event.data.object.id,
+          paymentStatus: event.data.object.payment_status,
+          amountTotal: totalAmount,
+          currency: event.data.object.currency,
+        });
+
+        console.log("Payment details stored successfully");
+      } catch (error) {
+        console.log("There is something wrong while storing payment details to database. ", error);
+      }
+    } else {
+      console.log("Unhandled event: Event type is not checkout.session.completed");
+    }
+
+    return res.sendStatus(200);
+  } catch (error) {
+    console.log("Error handling webhook event.", error);
+    return res.sendStatus(400);
+  }
+}
