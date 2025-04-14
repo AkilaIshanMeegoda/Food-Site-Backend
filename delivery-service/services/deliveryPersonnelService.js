@@ -1,4 +1,4 @@
-const DeliveryPersonnel = require("../../delivery-service/models/DeliveryPersonnel");
+const DeliveryPersonnel = require("../models/DeliveryPersonnel");
 const axios = require('axios');
 const Delivery = require("../models/Delivery");
 
