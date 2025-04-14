@@ -103,7 +103,10 @@ app.post("/login", async (req, res) => {
         res.status(200).json({
             message: "Login successful",
             token: token,
-            role: user.role
+            role: user.role,
+            userId: user._id,
+            email: user.email,
+            restaurantId: user.restaurantId
         });
     } else {
         res.status(400).json({ error: "Incorrect password" });
@@ -157,6 +160,54 @@ app.get("/users/:userId/role", verifyToken, async (req, res) => {
         res.status(200).json({ role: user.role });
     } catch (error) {
         res.status(500).json({ error: "Server error" });
+    }
+});
+
+// Register Restaurant Owner and link to user
+app.post("/register-restaurant-owner", verifyToken, async (req, res) => {
+    try {
+        const restaurantData = req.body;
+        const token = restaurantData.token;
+
+        // Make request to restaurant service
+        const response = await fetch("http://localhost:5001/api/restaurants/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(restaurantData),
+        });
+
+        // Handle HTTP errors (4xx/5xx)
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to create restaurant");
+        }
+
+        // Parse JSON response
+        const createdRestaurant = await response.json();
+        console.log("Created restaurant:", createdRestaurant);
+        const restaurantId = createdRestaurant._id; 
+
+        // Update user document
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user.userId,
+            { restaurantId, role: "restaurant_admin" },
+            { new: true }
+        );
+
+        res.status(200).json({
+            message: "Restaurant registered and user updated successfully.",
+            user: updatedUser,
+            restaurant: createdRestaurant // Optional: return created restaurant
+        });
+    } catch (error) {
+        console.error("Full error details:", error);
+        res.status(500).json({
+            message: "Error processing request.",
+            error: error.message
+        });
     }
 });
 
