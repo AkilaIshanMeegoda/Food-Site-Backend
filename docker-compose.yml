@@ -18,6 +18,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5003:5003"
+      
+  restaurant-service:
+    build:
+      context: ./restaurant-service  # path to restaurant service directory
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+
     environment:
       - NODE_ENV=development
     depends_on:
