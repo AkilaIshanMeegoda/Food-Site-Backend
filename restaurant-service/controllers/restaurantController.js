@@ -1,8 +1,9 @@
 const restaurantService = require("../services/restaurantService");
 
 exports.createRestaurant = async (req, res) => {
+    const restaurantData = {name, address, phone, email} = req.body;
     try {
-        const restaurant = await restaurantService.createRestaurant(req.user.userId, req.body);
+        const restaurant = await restaurantService.createRestaurant(req.user.userId, restaurantData);
         res.status(201).json(restaurant);
     } catch (err) {
         res.status(500).json({ error: "Failed to create restaurant" });
