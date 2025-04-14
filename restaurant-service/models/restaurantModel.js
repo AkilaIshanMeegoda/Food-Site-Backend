@@ -5,6 +5,7 @@ const RestaurantSchema = new mongoose.Schema({
     address: { type: String, required: true },
     phone: { type: String, required: true },
     isActive: { type: Boolean, default: true },
+    isAvailable: { type: Boolean, default: true },
     adminId: { type: String, required: true }
 });
 

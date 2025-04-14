@@ -5,6 +5,6 @@ const { verifyRestaurantAdmin } = require("../auth/middleware");
 
 router.post("/", verifyRestaurantAdmin, restaurantController.createRestaurant);
 router.get("/my-restaurant", verifyRestaurantAdmin, restaurantController.getRestaurant);
-router.put("/:id", verifyRestaurantAdmin, restaurantController.updateRestaurant);
+router.patch("/:id", verifyRestaurantAdmin, restaurantController.updateRestaurant);
 
 module.exports = router;
