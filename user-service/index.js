@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const fetch = require('node-fetch');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -170,7 +171,8 @@ app.post("/register-restaurant-owner", verifyToken, async (req, res) => {
         const token = restaurantData.token;
 
         // Make request to restaurant service
-        const response = await fetch("http://localhost:5001/api/restaurants/", {
+        // "http://localhost:5001/api/restaurants/ use this if not using docker-compose"
+        const response = await fetch("http://restaurant-service:5001/api/restaurants/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
