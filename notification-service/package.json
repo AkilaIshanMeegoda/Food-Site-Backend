@@ -1,11 +1,12 @@
 {
-    "name": "food-delivery-backend",
+    "name": "food-delivery-notification-service",
     "version": "1.0.0",
     "description": "Cloud-Native Food Ordering & Delivery System Backend",
-    "main": "app.js",
+    "main": "server.js",
+    "type": "module",
     "scripts": {
-      "start": "node index.js",
-      "dev": "nodemon index.js"
+      "start": "node server.js",
+      "dev": "nodemon server.js"
     },
     "dependencies": {
       "express": "^4.21.2",
