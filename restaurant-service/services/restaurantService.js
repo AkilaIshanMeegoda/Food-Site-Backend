@@ -44,3 +44,20 @@ exports.getActiveRestaurants = async () => {
 exports.getRestaurantById = async (id) => {
     return await Restaurant.findById(id);
 };
+
+exports.getAllRestaurants = async () => {
+    return await Restaurant.find(); // No filter: gets all, active or not
+};
+
+exports.updateRestaurantByAdmin = async (restaurantId, data) => {
+    const restaurant = await Restaurant.findOneAndUpdate(
+        { _id: restaurantId },
+        data,
+        { new: true }
+    );
+    if (!restaurant) {
+        throw new Error("Restaurant not found or not authorized to update");
+    }
+
+    return restaurant;
+};
