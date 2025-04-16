@@ -10,4 +10,5 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["node", "index.js"]
+# Use the same command as your "start" script
+CMD ["npm", "start"]
