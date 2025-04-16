@@ -21,3 +21,44 @@ exports.verifyRestaurantAdmin = (req, res, next) => {
         res.status(401).json({ error: "Invalid token" });
     }
 };
+
+// auth/middleware.js
+exports.verifyCustomer = (req, res, next) => {
+    const authHeader = req.header("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Access denied. Missing or invalid token format" });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded.role !== "customer") { // Ensure user is a customer
+            return res.status(403).json({ error: "Access denied. Customer role required" });
+        }
+        req.user = decoded; // Attach user data to request
+        next();
+    } catch (error) {
+        res.status(401).json({ error: "Invalid token" });
+    }
+};
+
+exports.verifySuperAdmin = (req, res, next) => {
+    const authHeader = req.header("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Access denied. Missing or invalid token format" });
+    }
+
+    const token = authHeader.split(" ")[1]; // Extract token after "Bearer"
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded.role !== "super_admin") {
+            return res.status(403).json({ error: "Access denied. Super Admin role required" });
+        }
+        req.user = decoded;
+        next();
+    } catch (error) {
+        res.status(401).json({ error: "Invalid token" });
+    }
+};
