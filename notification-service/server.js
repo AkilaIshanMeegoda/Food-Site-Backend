@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import "dotenv/config";
+import emailRoutes from "./routes/emailRoutes.js";
 
 const app = express();
 
@@ -10,6 +11,8 @@ const PORT = process.env.PORT || 5005;
 // Middlewares
 app.use(bodyParser.json());
 app.use(cors({ origin: "*" }));
+
+app.use('/api/notifications', emailRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
