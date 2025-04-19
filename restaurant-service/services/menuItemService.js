@@ -2,6 +2,7 @@ const MenuItem = require("../models/menuItemModel");
 const Restaurant = require("../models/restaurantModel");
 
 exports.createMenuItem = async (adminId, data) => {
+  console.log("check details", adminId, data);
   const restaurant = await Restaurant.findOne({ adminId });
   if (!restaurant) {
     throw new Error("Restaurant not found");
@@ -79,7 +80,7 @@ exports.getMenuItemsByCategory = async (restaurantId, category) => {
 };
 
 exports.getAllMenuItemsByCategory = async (category) => {
-  return await MenuItem.find({ category, isAvailable: true });
+  return await MenuItem.find({ category });
 };
 
 exports.getMenuItem = async (itemId, adminId) => {
@@ -111,7 +112,6 @@ exports.getAllAvailableMenuItems = async () => {
 
   return await MenuItem.find({
     restaurantId: { $in: restaurantIds },
-    isAvailable: true,
   }).populate("restaurantId", "name address");
 };
 
