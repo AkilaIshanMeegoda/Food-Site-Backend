@@ -98,7 +98,7 @@ app.post("/login", async (req, res) => {
                 restaurantId: user.restaurantId
             },
             JWT_SECRET,
-            { expiresIn: "24h" } // Changed from "24d" to "24h" for better security
+            { expiresIn: "30d" } // Changed from "24d" to "24h" for better security
         );
 
         res.status(200).json({
