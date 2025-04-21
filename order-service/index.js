@@ -19,6 +19,7 @@ const OrderSchema = new mongoose.Schema(
     customerId: { type: String, required: true },
     customerName: String,
     customerEmail: String,
+    customerPhone:String,
     restaurantId: String,
     restaurantName: String,
     items: [
@@ -69,6 +70,7 @@ app.post("/api/order", verifyToken, async (req, res) => {
       customerId,
       customerName,
       customerEmail,
+      customerPhone,
       restaurantId,
       restaurantName,
       items,
@@ -85,16 +87,19 @@ app.post("/api/order", verifyToken, async (req, res) => {
       });
     }
 
-    // Calculate totalAmount by summing quantity * price for each item
-    const totalAmount = items.reduce((sum, item) => {
+    const subAmount = items.reduce((sum, item) => {
       return sum + item.quantity * item.price;
     }, 0);
+    
+    const totalAmount = (subAmount + 150 + (subAmount * 5 / 100)).toFixed(2);
+    
 
     // Create new order
     const newOrder = new Order({
       customerId,
       customerName,
       customerEmail,
+      customerPhone,
       restaurantId,
       restaurantName,
       items,
