@@ -11,6 +11,7 @@ exports.createMenuItem = async (adminId, data) => {
   const menuItem = new MenuItem({
     restaurantId: restaurant._id,
     restaurantOwnerId: restaurant.adminId,
+    restaurantName: restaurant.name,
     ...data,
   });
 
