@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import "dotenv/config";
 import emailRoutes from "./routes/emailRoutes.js";
+import smsRoutes from "./routes/smsRoutes.js";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(bodyParser.json());
 app.use(cors({ origin: "*" }));
 
 app.use('/api/notifications', emailRoutes);
+app.use('/api/notifications', smsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
