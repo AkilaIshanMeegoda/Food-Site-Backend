@@ -5,7 +5,6 @@ const deliverySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     unique: true,
-    ref: "Order",
   },
   deliveryPersonnelId: {
     type: mongoose.Schema.Types.ObjectId,
