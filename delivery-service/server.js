@@ -46,41 +46,36 @@ io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
   socket.on("registerDriver", ({ userId }) => {
-    console.log("Received userId:", userId); // Log the userId to check its value
-
     if (userId) {
       driverSockets[userId] = socket;
-      console.log(`Driver ${userId} connected`);
-    } else {
-      console.log("No userId provided");
+      console.log(`Driver ${userId} registered and connected.`);
     }
   });
 
-  // In your backend's 'locationUpdate' handler:
-socket.on("locationUpdate", (data) => {
-  console.log("Raw data received:", data);
+  socket.on("locationUpdate", (data) => {
+    if (!data.userId || data.lat === undefined || data.lng === undefined) {
+      return console.error("Missing required fields in location update");
+    }
 
-  // Validate required fields
-  if (!data.userId || data.lat === undefined || data.lng === undefined) {
-    return console.error("Missing required fields in location update");
-  }
+    const lat = parseFloat(data.lat);
+    const lng = parseFloat(data.lng);
 
-  // Parse coordinates as numbers
-  const lat = parseFloat(data.lat);
-  const lng = parseFloat(data.lng);
+    if (isNaN(lat) || isNaN(lng)) {
+      return console.error("Invalid coordinate format");
+    }
 
-  // Validate coordinate ranges
-  if (isNaN(lat) || isNaN(lng)) {
-    return console.error("Invalid coordinate format (must be numbers)");
-  }
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-    return console.error("Coordinates out of valid range");
-  }
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return console.error("Coordinates out of range");
+    }
 
-  // Emit validated data
-  io.emit("driverLocation", { userId: data.userId, lat, lng });
-});
-  
+    // Emit to all clients (or selectively if needed)
+    io.emit("driverLocation", {
+      userId: data.userId,
+      lat,
+      lng,
+      timestamp: Date.now(),
+    });
+  });
 
   socket.on("disconnect", () => {
     for (const userId in driverSockets) {
