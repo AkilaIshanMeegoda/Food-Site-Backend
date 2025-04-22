@@ -1,9 +1,9 @@
 # .gitignore for Node.js & Express.js
 
 ### Environment ###
-.env
-.env.*
-!.env.example  # Keep the example file (if used)
+# .env
+# .env.*
+# !.env.example  # Keep the example file (if used)
 
 ### Logs ###
 logs
