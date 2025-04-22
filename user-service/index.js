@@ -213,6 +213,42 @@ app.post("/register-restaurant-owner", verifyToken, async (req, res) => {
     }
 });
 
+
+// update the role
+app.put('/users/:userId/role', verifyToken, async (req, res) => {
+    const { userId } = req.params;
+    const { role } = req.body;
+  
+    console.log(` PUT /users/${userId}/role`);
+    console.log(` Request body:`, req.body);
+  
+    if (!['customer', 'restaurant_admin', 'delivery_personnel'].includes(role)) {
+      console.log(' Invalid role provided:', role);
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+  
+    try {
+      console.log(` Looking for user with ID: ${userId}`);
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { role: role },
+        { new: true }
+      );
+  
+      if (!user) {
+        console.log(' User not found:', userId);
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      console.log(`Role updated successfully for user ${userId}:`, user.role);
+      res.json({ message: 'Role updated', user });
+    } catch (err) {
+      console.error(' Error updating role for user:', userId, err);
+      res.status(500).json({ message: 'Error updating role' });
+    }
+  });
+  
+  
 // Start server
 app.listen(port, () => {
     console.log(`User service started at http://localhost:${port}`);
