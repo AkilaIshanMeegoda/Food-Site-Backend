@@ -12,13 +12,6 @@ services:
     networks:
       - microservices-net
 
-  delivery-service:
-    build:
-      context: ./delivery-service  # path to delivery service directory
-      dockerfile: Dockerfile
-    ports:
-      - "5003:5003"
-      
   restaurant-service:
     build:
       context: ./restaurant-service  # path to restaurant service directory
@@ -32,6 +25,28 @@ services:
       - user-service  # ensures user-service starts first
     networks:
       - microservices-net
+
+  order-service:
+    build:
+      context: ./order-service 
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service 
+    networks:
+      - microservices-net
+
+  delivery-service:
+    build:
+      context: ./delivery-service  # path to delivery service directory
+      dockerfile: Dockerfile
+    ports:
+      - "5003:5003"
+      
 
 networks:
   microservices-net:
