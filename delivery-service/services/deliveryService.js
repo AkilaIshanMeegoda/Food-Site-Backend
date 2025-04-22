@@ -65,6 +65,16 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
       status: 'pending',
     });
 
+    // send sms to delivery personnel
+    try {
+      await axios.post("http://localhost:5005/api/notifications/delivery-personnel/sms", {
+        phoneNumber: nearestDriver.phone,
+        orderId: orderId
+      });
+    } catch (error) {
+      console.log("Send sms to delivery personnel failed: ", error);
+    }
+
     return { status: 200, data: { message: 'Driver assigned', delivery } };
   } catch (error) {
     console.error('Error in assignDriver:', error);
