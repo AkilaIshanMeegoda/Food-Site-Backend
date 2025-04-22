@@ -18,6 +18,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5003:5003"
+
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service  # ensures user-service starts first
+    networks:
+      - microservices-net  
       
   restaurant-service:
     build:
