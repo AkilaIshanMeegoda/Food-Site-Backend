@@ -66,8 +66,9 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
     });
 
     // send sms to delivery personnel
+    //if not using docker- http://localhost:5005/api/notifications/delivery-personnel/sms
     try {
-      await axios.post("http://localhost:5005/api/notifications/delivery-personnel/sms", {
+      await axios.post("http://notification-service:5005/api/notifications/delivery-personnel/sms", {
         phoneNumber: nearestDriver.phone,
         orderId: orderId
       });

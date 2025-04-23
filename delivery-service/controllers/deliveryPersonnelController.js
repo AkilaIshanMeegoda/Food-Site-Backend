@@ -2,13 +2,13 @@ const deliveryPersonnelService = require("../services/deliveryPersonnelService")
 
 const registerDeliveryPersonnel = async (req, res) => {
   try {
-    const { name, phone, vehicleType, vehicleNumber, currentLocation } = req.body;
+    const { name, phone, email, vehicleType, vehicleNumber, currentLocation } = req.body;
     const userId = req.user.userId;
 
     const token = req.headers.authorization; // Get the token
 
     const personnel = await deliveryPersonnelService.registerDeliveryPersonnel(
-      userId, name, phone, vehicleType, vehicleNumber, currentLocation, token 
+      userId, name, phone, email, vehicleType, vehicleNumber, currentLocation, token 
     );
 
     res.status(201).json({ message: 'Personnel registered', personnel });
