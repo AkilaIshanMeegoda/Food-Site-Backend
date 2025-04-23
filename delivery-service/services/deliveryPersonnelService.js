@@ -4,7 +4,7 @@ const Delivery = require("../models/Delivery");
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 
-const registerDeliveryPersonnel = async (userId, name, phone, vehicleType, vehicleNumber, currentLocation, token) => {
+const registerDeliveryPersonnel = async (userId, name, phone, email, vehicleType, vehicleNumber, currentLocation, token) => {
   // Check if already registered
   const existingPersonnel = await DeliveryPersonnel.findOne({ userId });
   if (existingPersonnel) {
@@ -27,6 +27,7 @@ const registerDeliveryPersonnel = async (userId, name, phone, vehicleType, vehic
     userId, // Still keeping this for clarity & relation
     name,
     phone,
+    email,
     vehicleType,
     vehicleNumber,
     currentLocation,
