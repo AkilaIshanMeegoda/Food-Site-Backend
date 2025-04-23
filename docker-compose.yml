@@ -54,7 +54,20 @@ services:
     networks:
       - microservices-net
     
+  notification-service:
+    build:
+      context: ./notification-service  # path to order service directory
+      dockerfile: Dockerfile
+    ports:
+      - "5005:5005"
 
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service  # ensures user-service starts first
+    networks:
+      - microservices-net
+      
 networks:
   microservices-net:
     driver: bridge

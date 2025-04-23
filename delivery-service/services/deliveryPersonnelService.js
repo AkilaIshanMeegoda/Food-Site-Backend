@@ -97,4 +97,5 @@ module.exports = {
   registerDeliveryPersonnel,
   getDeliveryPersonnelProfile,
   getDeliveriesByPersonnel
+  
 };
