@@ -25,7 +25,7 @@ services:
       - user-service  # ensures user-service starts first
     networks:
       - microservices-net  
-      
+
   restaurant-service:
     build:
       context: ./restaurant-service  # path to restaurant service directory
@@ -42,7 +42,7 @@ services:
 
   order-service:
     build:
-      context: ./order-service  # path to order service directory
+      context: ./order-service 
       dockerfile: Dockerfile
     ports:
       - "5002:5002"
@@ -53,7 +53,7 @@ services:
       - user-service  # ensures user-service starts first
     networks:
       - microservices-net
-    
+
 
 networks:
   microservices-net:
