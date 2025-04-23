@@ -20,6 +20,28 @@ exports.createOrder = async (req, res) => {
   }
 };
 
+// create order for stripe (card) payments
+exports.stripeOrder = async (req, res) => {
+  try {
+    const orderData = req.body;
+
+    const savedOrder = await orderService.createStripeOrder(orderData);
+
+    res.status(201).json({
+      success: true,
+      message: "Order created from Stripe payment",
+      orderId: savedOrder._id
+    });
+  } catch (error) {
+    console.error("Error creating order from Stripe:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
 // Update an order
 exports.updateOrder = async (req, res) => {
   try {

@@ -6,6 +6,9 @@ const { verifyToken } = require("../middleware/authMiddleware");
 // Create a new order
 router.post("/order", verifyToken, orderController.createOrder);
 
+// Create stripe (card) payments
+router.post("/order/from-stripe", orderController.stripeOrder);
+
 // Update an order
 router.patch("/order/:id", verifyToken, orderController.updateOrder);
 
