@@ -172,7 +172,7 @@ app.post("/register-restaurant-owner", verifyToken, async (req, res) => {
 
         // Make request to restaurant service
         // "http://localhost:5001/api/restaurants/ use this if not using docker-compose"
-        const response = await fetch("http://restaurant-service:5001/api/restaurants/", {
+        const response = await fetch("http://localhost:5001/api/restaurants/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
