@@ -126,3 +126,13 @@ exports.updateStatus = async (orderId, status) => {
       return { status: 500, data: { message: 'Server error' } };
     }
   };
+
+  exports.getDeliveryByOrderId = async (orderId) => {
+    const delivery = await Delivery.findOne({ orderId });
+  
+    if (!delivery) {
+      throw new Error("Delivery information not found for this order");
+    }
+  
+    return delivery;
+  };
