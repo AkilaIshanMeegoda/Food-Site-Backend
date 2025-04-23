@@ -1,15 +1,15 @@
-const User = require("../models/UserModel");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const User = require('../models/UserModel');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const fetch = require('node-fetch');
-const { JWT_SECRET } = require("../middleware/authMiddleware");
 
-// Register a new user
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
+
 exports.registerUser = async (userData) => {
   const { email, password, role, restaurantId } = userData;
 
   // Validate role
-  if (!['customer', 'restaurant_admin', 'delivery_personnel'].includes(role)) {
+  if (!['customer', 'restaurant_admin', 'delivery_personnel', 'super_admin'].includes(role)) {
     throw new Error("Invalid role");
   }
 
@@ -34,7 +34,6 @@ exports.registerUser = async (userData) => {
   return await newUser.save();
 };
 
-// Login user and generate token
 exports.loginUser = async (credentials) => {
   const { email, password } = credentials;
 
@@ -71,33 +70,28 @@ exports.loginUser = async (credentials) => {
   };
 };
 
-// Get user profile
 exports.getUserProfile = async (userId) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error("User not found");
   }
-
+  
   return {
     email: user.email,
     role: user.role
   };
 };
 
-// Get user role
 exports.getUserRole = async (userId) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error("User not found");
   }
-
+  
   return { role: user.role };
 };
 
-// Register restaurant owner
-exports.registerRestaurantOwner = async (restaurantData, userId) => {
-  const token = restaurantData.token;
-
+exports.registerRestaurantOwner = async (userId, restaurantData, token) => {
   // Make request to restaurant service
   const response = await fetch("http://restaurant-service:5001/api/restaurants/", {
     method: "POST",
@@ -108,7 +102,7 @@ exports.registerRestaurantOwner = async (restaurantData, userId) => {
     body: JSON.stringify(restaurantData),
   });
 
-  // Handle HTTP errors (4xx/5xx)
+  // Handle HTTP errors
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || "Failed to create restaurant");
@@ -131,15 +125,14 @@ exports.registerRestaurantOwner = async (restaurantData, userId) => {
   };
 };
 
-// Update user role
 exports.updateUserRole = async (userId, role) => {
-  if (!['customer', 'restaurant_admin', 'delivery_personnel'].includes(role)) {
+  if (!['customer', 'restaurant_admin', 'delivery_personnel', 'super_admin'].includes(role)) {
     throw new Error("Invalid role");
   }
 
   const user = await User.findByIdAndUpdate(
     userId,
-    { role: role },
+    { role },
     { new: true }
   );
 

@@ -1,25 +1,29 @@
-const userService = require("../services/userService");
+const userService = require('../services/userService');
 
-// Register a new user
-exports.registerUser = async (req, res) => {
+exports.register = async (req, res) => {
   try {
-    await userService.registerUser(req.body);
+    const savedUser = await userService.registerUser(req.body);
     
-    res.status(201).json({ 
+    res.status(201).json({
       success: true,
-      message: "User registered successfully" 
+      message: "User registered successfully",
+      user: {
+        id: savedUser._id,
+        email: savedUser.email,
+        role: savedUser.role
+      }
     });
   } catch (error) {
-    console.error("Register user error:", error);
+    console.error("Registration error:", error);
     res.status(400).json({
       success: false,
-      message: error.message || "Failed to register user"
+      message: "Failed to register user",
+      error: error.message
     });
   }
 };
 
-// Login user
-exports.loginUser = async (req, res) => {
+exports.login = async (req, res) => {
   try {
     const userData = await userService.loginUser(req.body);
     
@@ -32,93 +36,87 @@ exports.loginUser = async (req, res) => {
     console.error("Login error:", error);
     res.status(400).json({
       success: false,
-      message: error.message
+      message: "Login failed",
+      error: error.message
     });
   }
 };
 
-// Get user profile
-exports.getUserProfile = async (req, res) => {
+exports.getProfile = async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const userProfile = await userService.getUserProfile(userId);
+    const profile = await userService.getUserProfile(req.user.userId);
     
     res.status(200).json({
       success: true,
-      ...userProfile,
+      ...profile,
       message: "Welcome to your profile"
     });
   } catch (error) {
-    console.error("Get profile error:", error);
+    console.error("Profile fetch error:", error);
     res.status(404).json({
       success: false,
-      message: error.message
+      message: "Failed to fetch profile",
+      error: error.message
     });
   }
 };
 
-// Get user role
 exports.getUserRole = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const roleData = await userService.getUserRole(userId);
+    const roleData = await userService.getUserRole(req.params.userId);
     
     res.status(200).json({
       success: true,
       ...roleData
     });
   } catch (error) {
-    console.error("Get user role error:", error);
+    console.error("Role fetch error:", error);
     res.status(404).json({
       success: false,
-      message: error.message
-    });
-  }
-};
-
-// Register restaurant owner
-exports.registerRestaurantOwner = async (req, res) => {
-  try {
-    const result = await userService.registerRestaurantOwner(req.body, req.user.userId);
-    
-    res.status(200).json({
-      success: true,
-      message: "Restaurant registered and user updated successfully.",
-      user: result.user,
-      restaurant: result.restaurant
-    });
-  } catch (error) {
-    console.error("Register restaurant owner error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error processing request.",
+      message: "Failed to fetch user role",
       error: error.message
     });
   }
 };
 
-// Update user role
-exports.updateUserRole = async (req, res) => {
+exports.registerRestaurantOwner = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { role } = req.body;
+    const result = await userService.registerRestaurantOwner(
+      req.user.userId,
+      req.body,
+      req.body.token
+    );
     
-    console.log(`PUT /users/${userId}/role`);
-    console.log(`Request body:`, req.body);
-    
-    const updatedUser = await userService.updateUserRole(userId, role);
-    
-    console.log(`Role updated successfully for user ${userId}:`, updatedUser.role);
     res.status(200).json({
       success: true,
-      message: 'Role updated',
-      user: updatedUser
+      message: "Restaurant registered and user updated successfully",
+      ...result
     });
   } catch (error) {
-    console.error(`Error updating role for user:`, req.params.userId, error);
-    res.status(error.message === "User not found" ? 404 : 400).json({
+    console.error("Restaurant registration error:", error);
+    res.status(500).json({
       success: false,
-      message: error.message
+      message: "Error processing request",
+      error: error.message
+    });
+  }
+};
+
+exports.updateUserRole = async (req, res) => {
+  try {
+    const user = await userService.updateUserRole(req.params.userId, req.body.role);
+    
+    res.status(200).json({
+      success: true,
+      message: "Role updated",
+      user
+    });
+  } catch (error) {
+    console.error("Role update error:", error);
+    res.status(400).json({
+      success: false,
+      message: "Failed to update role",
+      error: error.message
     });
   }
 };
