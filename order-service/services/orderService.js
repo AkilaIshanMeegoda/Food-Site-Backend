@@ -1,3 +1,4 @@
+const axios = require("axios");
 const Order = require("../models/OrderModel");
 
 // Create a new order
@@ -42,6 +43,34 @@ exports.createOrder = async (orderData) => {
     orderStatus: "false",
     paymentStatus: "pending",
   });
+
+  // Prepare payload for order complete email
+  const emailPayload = {
+    customerEmail: customerEmail,
+    customerName: customerName,
+    orderId: newOrder._id,
+    orderTotal: totalAmount,
+    orderItems: items,
+  };
+
+  try {
+    await axios.post("http://localhost:5005/api/notifications/order-complete", emailPayload);
+  } catch (emailError) {
+    console.error("Failed to send order complete email:", emailError.message);
+  }
+
+  // Prepare payload for order complete sms
+  const smsPayload = {
+    phoneNumber: customerPhone,
+    userName: customerName,
+    orderId: newOrder._id,
+  }
+
+  try {
+    await axios.post("http://localhost:5005/api/notifications/order-complete/sms", smsPayload);
+  } catch (error) {
+    console.error("Failed to send order complete sms:", error.message);
+  }
 
   return await newOrder.save();
 };
