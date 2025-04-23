@@ -57,6 +57,7 @@ io.on("connection", (socket) => {
       return console.error("Missing required fields in location update");
     }
 
+    console.log("Location update received:", data);
     const lat = parseFloat(data.lat);
     const lng = parseFloat(data.lng);
 
@@ -73,6 +74,7 @@ io.on("connection", (socket) => {
       userId: data.userId,
       lat,
       lng,
+      orderId: data.orderId,
       timestamp: Date.now(),
     });
   });
