@@ -29,7 +29,6 @@ async function sendSMS(phoneNumber, message) {
           "x-api-key": API_KEY,
           "Content-Type": "application/json",
         },
-        timeout: 5000,
       }
     );
 
