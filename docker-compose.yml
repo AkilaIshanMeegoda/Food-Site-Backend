@@ -18,7 +18,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5003:5003"
-      
+
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service  # ensures user-service starts first
+    networks:
+      - microservices-net  
+
   restaurant-service:
     build:
       context: ./restaurant-service  # path to restaurant service directory
@@ -33,6 +40,34 @@ services:
     networks:
       - microservices-net
 
+  order-service:
+    build:
+      context: ./order-service 
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service  # ensures user-service starts first
+    networks:
+      - microservices-net
+    
+  notification-service:
+    build:
+      context: ./notification-service  # path to order service directory
+      dockerfile: Dockerfile
+    ports:
+      - "5005:5005"
+      
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service  # ensures user-service starts first
+    networks:
+      - microservices-net
+      
 networks:
   microservices-net:
     driver: bridge
