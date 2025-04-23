@@ -38,3 +38,29 @@ exports.acceptDelivery = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
     }
   };
+
+
+
+exports.getDeliveryByOrderId = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const delivery = await deliveryService.getDeliveryByOrderId(orderId);
+
+    return res.status(200).json({
+      success: true,
+      data: delivery
+    });
+  } catch (error) {
+    console.error("Get delivery error:", error.message);
+
+    const statusCode = error.message.includes("not found") ? 404 : 500;
+
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
