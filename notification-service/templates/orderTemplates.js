@@ -24,7 +24,7 @@ export const orderTemplates = {
           
           <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
             <span>Total Paid: </span>
-            <span>Rs.${orderTotal.toFixed(2)}</span>
+            <span>Rs.${orderTotal}</span>
           </div>
           
           <p style="font-size: 15px;">We'll notify you when your order is on its way. Expected preparation time: 15-25 minutes.</p>
