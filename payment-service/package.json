@@ -1,5 +1,5 @@
 {
-    "name": "food-delivery-paymetn-service",
+    "name": "food-delivery-payment-service",
     "version": "1.0.0",
     "description": "Cloud-Native Food Ordering & Delivery System Payment Service",
     "main": "app.js",

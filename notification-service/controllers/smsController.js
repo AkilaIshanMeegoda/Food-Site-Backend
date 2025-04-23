@@ -1,4 +1,5 @@
 import axios from "axios";
+import "dotenv/config";
 
 export async function sendOrderCompleteSMS(req, res) {
   try {
@@ -87,11 +88,13 @@ async function _sendSMS(phoneNumber, message) {
   const API_KEY = process.env.SMS_API_KEY;
   const DEVICE_ID = process.env.SMS_DEVICE_ID;
 
+  console.log("Using SMS API:", API_KEY, DEVICE_ID);
+  console.log("Phone Number Before Clean:", phoneNumber);
+
   if (!API_KEY || !DEVICE_ID) {
     throw new Error("SMS gateway not configured");
   }
 
-  // Clean phone number
   const cleanNumber = phoneNumber.replace(/\D/g, "");
   if (!cleanNumber) {
     throw new Error("Invalid phone number");
@@ -101,26 +104,29 @@ async function _sendSMS(phoneNumber, message) {
     const response = await axios.post(
       `https://api.textbee.dev/api/v1/gateway/devices/${DEVICE_ID}/send-sms`,
       {
-        recipients: [`+${cleanNumber}`], // Ensure + prefix
-        message: message.substring(0, 160), // Truncate if too long
+        recipients: [`+${cleanNumber}`],
+        message: message.substring(0, 160),
       },
       {
         headers: {
           "x-api-key": API_KEY,
           "Content-Type": "application/json",
         },
-        timeout: 5000, // 5 second timeout
+        timeout: 5000,
       }
     );
 
-    // Check for success in response (adjust based on TextBee's actual response)
-    if (response.data?.status !== "success") {
-      throw new Error(response.data?.message || "SMS failed");
+    console.log("TextBee response:", response.data);
+
+    if (!response.data?.data?.success) {
+      throw new Error(response.data?.data?.message || "SMS failed");
     }
 
-    return response.data;
+    return response.data.data;
   } catch (error) {
-    const apiError = error.response?.data || error.message;
-    throw new Error(`SMS API Error: ${JSON.stringify(apiError)}`);
+    console.error("TextBee error:", error.response?.data || error.message);
+    throw new Error(
+      `SMS API Error: ${JSON.stringify(error.response?.data || error.message)}`
+    );
   }
 }
