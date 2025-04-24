@@ -78,6 +78,27 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
     if (driversToAssign.length === 1) {
       delivery.deliveryPersonnelId = driversToAssign[0]._id;
       await delivery.save();
+      
+    // send email to delivery personnel
+    //if not using docker- http://localhost:5005/api/notifications/order-delivery-assign
+    try {
+      await axios.post("http://notification-service:5005/api/notifications/order-delivery-assign", {
+        email: nearestDriver.email,
+        orderId: orderId
+      });
+    } catch (error) {
+      console.log("Send email to delivery personnel failed: ", error);
+    }
+
+    // send sms to delivery personnel
+    //if not using docker- http://localhost:5005/api/notifications/delivery-personnel/sms
+    try {
+      await axios.post("http://notification-service:5005/api/notifications/delivery-personnel/sms", {
+        phoneNumber: nearestDriver.phone,
+        orderId: orderId
+      });
+    } catch (error) {
+      console.log("Send sms to delivery personnel failed: ", error);
     }
     
     // Send notifications to all assigned drivers

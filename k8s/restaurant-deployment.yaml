@@ -15,7 +15,7 @@ spec:
       containers:
         - name: restaurant-service
           image: restaurant-service
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5001
           env:
