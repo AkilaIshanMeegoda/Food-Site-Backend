@@ -14,17 +14,21 @@ export const orderTemplates = {
           
           <div style="margin: 25px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 15px 0;">
             <p style="font-weight: bold; margin: 0 0 10px;">Order #${orderId}</p>
-            ${orderItems.map(item => `
+            ${orderItems
+              .map(
+                (item) => `
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                 <span>${item.quantity}x ${item.name}: </span>
                 <span>Rs.${item.price.toFixed(2)}</span>
               </div>
-            `).join('')}
+            `
+              )
+              .join("")}
           </div>
           
           <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
             <span>Total Paid: </span>
-            <span>Rs.${orderTotal.toFixed(2)}</span>
+            <span>Rs.${orderTotal}</span>
           </div>
           
           <p style="font-size: 15px;">We'll notify you when your order is on its way. Expected preparation time: 15-25 minutes.</p>
@@ -68,5 +72,36 @@ export const orderTemplates = {
         </div>
       </div>
     `,
-  })
+  }),
+  deliveryAssignment: (orderId) => ({
+    subject: `New Delivery Assigned: Order #${orderId}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <div style="background-color: #0984E3; padding: 25px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">New Delivery Task</h1>
+          <p style="color: white; margin: 5px 0 0; font-size: 16px;">You have been assigned a new delivery order</p>
+        </div>
+
+        <div style="padding: 25px; border: 1px solid #eaeaea;">
+          <h2 style="color: #444; margin-top: 0;">Hello Delivery Partner,</h2>
+          <p style="font-size: 16px;">You have a new delivery assignment. Please review the order details and prepare to pick up the package.</p>
+          
+          <div style="margin: 20px 0; padding: 15px; background-color: #f0f8ff; border-left: 4px solid #0984E3;">
+            <p style="margin: 0; font-weight: bold; font-size: 18px;">Order ID: #${orderId}</p>
+          </div>
+
+          <p style="font-size: 15px;">Kindly make sure to follow all delivery protocols and handle the order with care.</p>
+
+          <div style="text-align: center; margin: 30px 0 20px;">
+            <a href="#" style="background-color: #0984E3; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">View Assignment</a>
+          </div>
+        </div>
+
+        <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 14px; color: #666;">
+          <p style="margin: 0;">Need help? <a href="mailto:support@epiceats.com" style="color: #0984E3; text-decoration: none;">Contact support</a></p>
+          <p style="margin: 10px 0 0;">© ${new Date().getFullYear()} Epic Eats. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+  }),
 };

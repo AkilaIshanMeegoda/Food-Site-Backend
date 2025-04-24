@@ -22,6 +22,7 @@ const OrderSchema = new mongoose.Schema(
     deliveryInstructions: String,
     paymentMethod: String,
     paymentStatus: { type: String, default: "pending" },
+    checkoutSessionId: String,
   },
   { timestamps: true }
 );

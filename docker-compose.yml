@@ -53,7 +53,7 @@ services:
       - user-service  # ensures user-service starts first
     networks:
       - microservices-net
-
+      
   payment-service:
     build:
       context: ./payment-service 
@@ -74,7 +74,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5005:5005"
-
+      
     environment:
       - NODE_ENV=development
     depends_on:
