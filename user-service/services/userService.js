@@ -93,6 +93,7 @@ exports.getUserRole = async (userId) => {
 
 exports.registerRestaurantOwner = async (userId, restaurantData, token) => {
   // Make request to restaurant service
+  // http://restaurant-service:5001/api/restaurants/ use when running in docker-compose
   const response = await fetch("http://restaurant-service:5001/api/restaurants/", {
     method: "POST",
     headers: {
