@@ -42,11 +42,11 @@ const registerDeliveryPersonnel = async (userId, name, phone, email, vehicleType
   //  CALL USER SERVICE TO UPDATE ROLE
   // Attempt to update user role, but don't block registration if it fails
   try {
-    console.log("📡 Calling User Service to update role for user:", userId);
+    console.log(" Calling User Service to update role for user:", userId);
 
 
     const response = await axios.put(
-      `http://user-service:5000/users/${userId}/role`,
+      `http://user-service:5000/${userId}/role`,
       { role: 'delivery_personnel' },
       {
         headers: {
@@ -85,7 +85,12 @@ const getDeliveryPersonnelProfile = async (userId) => {
 
 const getDeliveriesByPersonnel = async (deliveryPersonnelId) => {
   try {
-    const deliveries = await Delivery.find({ deliveryPersonnelId });
+    const deliveries = await Delivery.find({ 
+      $or: [
+        { deliveryPersonnelId: deliveryPersonnelId }, // accepted by this driver
+        { assignedDrivers: { $in: [deliveryPersonnelId] } } // still available for this driver to accept
+      ]
+    });
     return { status: 200, data: deliveries };
   } catch (error) {
     console.error("Error in getDeliveriesByPersonnel:", error);
@@ -94,9 +99,12 @@ const getDeliveriesByPersonnel = async (deliveryPersonnelId) => {
 };
 
 
+
 module.exports = {
   registerDeliveryPersonnel,
   getDeliveryPersonnelProfile,
   getDeliveriesByPersonnel
   
 };
+
+
