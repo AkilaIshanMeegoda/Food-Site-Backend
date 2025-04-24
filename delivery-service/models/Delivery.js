@@ -10,6 +10,10 @@ const deliverySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "DeliveryPersonnel",
   },
+  assignedDrivers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "DeliveryPersonnel",
+  }],
   pickupAddress: String,  
   dropoffAddress: String, 
   pickupLat: Number,
