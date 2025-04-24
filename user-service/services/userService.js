@@ -2,143 +2,132 @@ const User = require('../models/UserModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fetch = require('node-fetch');
+const IUserService = require('./IUserService');
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
 
-exports.registerUser = async (userData) => {
-  const { email, password, role, restaurantId } = userData;
+class UserService extends IUserService {
+  async registerUser(userData) {
+    const { email, password, role, restaurantId } = userData;
 
-  // Validate role
-  if (!['customer', 'restaurant_admin', 'delivery_personnel', 'super_admin'].includes(role)) {
-    throw new Error("Invalid role");
+    if (!['customer', 'restaurant_admin', 'delivery_personnel', 'super_admin'].includes(role)) {
+      throw new Error("Invalid role");
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new Error("Email is already registered");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      role,
+      restaurantId: role === 'restaurant_admin' ? restaurantId : undefined
+    });
+
+    return await newUser.save();
   }
 
-  // Check if the user already exists
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    throw new Error("Email is already registered");
-  }
+  async loginUser(credentials) {
+    const { email, password } = credentials;
 
-  // Hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-  // Create a new user
-  const newUser = new User({
-    email,
-    password: hashedPassword,
-    role,
-    restaurantId: role === 'restaurant_admin' ? restaurantId : undefined
-  });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new Error("Incorrect password");
+    }
 
-  return await newUser.save();
-};
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        email: user.email,
+        role: user.role,
+        restaurantId: user.restaurantId
+      },
+      JWT_SECRET,
+      { expiresIn: "30d" }
+    );
 
-exports.loginUser = async (credentials) => {
-  const { email, password } = credentials;
-
-  // Find the user by email
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  // Check if the password matches
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    throw new Error("Incorrect password");
-  }
-
-  // Create JWT token
-  const token = jwt.sign(
-    { 
-      userId: user._id, 
-      email: user.email,
+    return {
+      token,
       role: user.role,
+      userId: user._id,
+      email: user.email,
       restaurantId: user.restaurantId
-    },
-    JWT_SECRET,
-    { expiresIn: "30d" }
-  );
-
-  return {
-    token,
-    role: user.role,
-    userId: user._id,
-    email: user.email,
-    restaurantId: user.restaurantId
-  };
-};
-
-exports.getUserProfile = async (userId) => {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error("User not found");
-  }
-  
-  return {
-    email: user.email,
-    role: user.role
-  };
-};
-
-exports.getUserRole = async (userId) => {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error("User not found");
-  }
-  
-  return { role: user.role };
-};
-
-exports.registerRestaurantOwner = async (userId, restaurantData, token) => {
-  // Make request to restaurant service
-  const response = await fetch("http://restaurant-service:5001/api/restaurants/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(restaurantData),
-  });
-
-  // Handle HTTP errors
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to create restaurant");
+    };
   }
 
-  // Parse JSON response
-  const createdRestaurant = await response.json();
-  const restaurantId = createdRestaurant._id;
+  async getUserProfile(userId) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-  // Update user document
-  const updatedUser = await User.findByIdAndUpdate(
-    userId,
-    { restaurantId, role: "restaurant_admin" },
-    { new: true }
-  );
-
-  return {
-    user: updatedUser,
-    restaurant: createdRestaurant
-  };
-};
-
-exports.updateUserRole = async (userId, role) => {
-  if (!['customer', 'restaurant_admin', 'delivery_personnel', 'super_admin'].includes(role)) {
-    throw new Error("Invalid role");
+    return {
+      email: user.email,
+      role: user.role
+    };
   }
 
-  const user = await User.findByIdAndUpdate(
-    userId,
-    { role },
-    { new: true }
-  );
+  async getUserRole(userId) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-  if (!user) {
-    throw new Error("User not found");
+    return { role: user.role };
   }
 
-  return user;
-};
+  async registerRestaurantOwner(userId, restaurantData, token) {
+    const response = await fetch("http://restaurant-service:5001/api/restaurants/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(restaurantData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to create restaurant");
+    }
+
+    const createdRestaurant = await response.json();
+    const restaurantId = createdRestaurant._id;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { restaurantId, role: "restaurant_admin" },
+      { new: true }
+    );
+
+    return {
+      user: updatedUser,
+      restaurant: createdRestaurant
+    };
+  }
+
+  async updateUserRole(userId, role) {
+    if (!['customer', 'restaurant_admin', 'delivery_personnel', 'super_admin'].includes(role)) {
+      throw new Error("Invalid role");
+    }
+
+    const user = await User.findByIdAndUpdate(userId, { role }, { new: true });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user;
+  }
+}
+
+module.exports = new UserService();
