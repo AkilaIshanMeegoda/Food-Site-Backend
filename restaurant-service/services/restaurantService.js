@@ -1,63 +1,72 @@
-const Restaurant = require("../models/restaurantModel");
+const IRestaurantService = require('./IRestaurantService');
+const Restaurant = require('../models/restaurantModel');
 
-exports.createRestaurant = async (adminId, data) => {
+class RestaurantService extends IRestaurantService {
+  async createRestaurant(adminId, data) {
+    console.log("Im here in createRestaurant service");
     const existingRestaurant = await Restaurant.findOne({ adminId });
     if (existingRestaurant) {
-        throw new Error("You already have a restaurant registered");
+      throw new Error("You already have a restaurant registered");
     }
 
     const restaurant = new Restaurant({
-        ...data,
-        adminId
+      ...data,
+      adminId
     });
 
     await restaurant.save();
     return restaurant;
-};
+  }
 
-exports.getRestaurant = async (adminId) => {
+  async getRestaurant(adminId) {
+    console.log("Im here in getRestaurant service");
     const restaurant = await Restaurant.findOne({ adminId });
     if (!restaurant) {
-        throw new Error("Restaurant not found");
+      throw new Error("Restaurant not found");
     }
-
     return restaurant;
-};
+  }
 
-exports.updateRestaurant = async (restaurantId, adminId, data) => {
+  async updateRestaurant(restaurantId, adminId, data) {
+    console.log("Im here in updateRestaurant service");
     const restaurant = await Restaurant.findOneAndUpdate(
-        { _id: restaurantId, adminId },
-        data,
-        { new: true }
+      { _id: restaurantId, adminId },
+      data,
+      { new: true }
     );
     if (!restaurant) {
-        throw new Error("Restaurant not found or not authorized to update");
+      throw new Error("Restaurant not found or not authorized to update");
     }
-
     return restaurant;
-};
+  }
 
-exports.getActiveRestaurants = async () => {
-    return await Restaurant.find({ isActive: true });
-};
+  async getActiveRestaurants() {
+    console.log("Im here in getActiveRestaurants service");
+    return Restaurant.find({ isActive: true });
+  }
+  // This function is used to get a restaurant by its ID.
+  async getRestaurantById(id) {
+    console.log("Im here in getRestaurantById service");
+    return Restaurant.findById(id);
+  }
 
-exports.getRestaurantById = async (id) => {
-    return await Restaurant.findById(id);
-};
+  async getAllRestaurants() {
+    console.log("Im here in getAllRestaurants service");
+    return Restaurant.find();
+  }
 
-exports.getAllRestaurants = async () => {
-    return await Restaurant.find(); // No filter: gets all, active or not
-};
-
-exports.updateRestaurantByAdmin = async (restaurantId, data) => {
+  async updateRestaurantByAdmin(restaurantId, data) {
+    console.log("Im here in updateRestaurantByAdmin service");
     const restaurant = await Restaurant.findOneAndUpdate(
-        { _id: restaurantId },
-        data,
-        { new: true }
+      { _id: restaurantId },
+      data,
+      { new: true }
     );
     if (!restaurant) {
-        throw new Error("Restaurant not found or not authorized to update");
+      throw new Error("Restaurant not found or not authorized to update");
     }
-
     return restaurant;
-};
+  }
+}
+
+module.exports = new RestaurantService();
