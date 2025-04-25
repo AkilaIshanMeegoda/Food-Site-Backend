@@ -108,19 +108,18 @@ class OrderService extends IOrderService {
     return this._paginatedResults(filters, queryParams);
   }
 
-  async getOrderById(orderId, user) {
+  async getOrderById(orderId, user){
     const order = await Order.findById(orderId);
-    if (!order) throw new Error("Order not found");
-
-    if (
-      (user.role === "customer" && user.id !== order.customerId) ||
-      (user.role === "restaurant" && user.id !== order.restaurantId)
-    ) {
-      throw new Error("Not authorized to view this order");
+    
+    if (!order) throw new Error('Order not found');
+    
+    if (order.customerId.toString() !== user.userId && 
+        order.restaurantId.toString() !== user.userId) {
+      throw new Error('Not authorized to view this order');
     }
-
+    
     return order;
-  }
+  };
 
   async updateOrderStatus(orderId, status, user) {
     const order = await Order.findById(orderId);
