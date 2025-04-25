@@ -87,6 +87,7 @@ class UserService extends IUserService {
   }
 
   async registerRestaurantOwner(userId, restaurantData, token) {
+    // use this when run backend manually -> http://localhost:5001/api/restaurants/
     const response = await fetch("http://restaurant-service:5001/api/restaurants/", {
       method: "POST",
       headers: {
