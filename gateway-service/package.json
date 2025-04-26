@@ -2,6 +2,7 @@
     "name": "food-delivery-backend",
     "version": "1.0.0",
     "description": "Cloud-Native Food Ordering & Delivery System Backend",
+    "type": "module",
     "main": "app.js",
     "scripts": {
         "start": "node index.js",
