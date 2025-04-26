@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 app.use(cors({ origin: "*" }));
 
 // Routes
-app.use("/orderApi", orderRoutes);
+app.use("/order", orderRoutes); 
 
 // Start the server
 app.listen(port, () => {

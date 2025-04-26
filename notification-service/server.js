@@ -13,8 +13,8 @@ const PORT = process.env.PORT || 5005;
 app.use(bodyParser.json());
 app.use(cors({ origin: "*" }));
 
-app.use('/api/notifications', emailRoutes);
-app.use('/api/notifications', smsRoutes);
+app.use('/notifications', emailRoutes);
+app.use('/notifications', smsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

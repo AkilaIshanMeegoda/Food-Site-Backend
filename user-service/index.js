@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.use(cors({ origin: "*" }));
 
 // Routes - Note: To match your frontend login hook, we're using root paths
-app.use('/', userRoutes);
+app.use('/user', userRoutes);
 
 // Start server
 app.listen(port, () => {
