@@ -82,6 +82,24 @@ services:
     networks:
       - microservices-net
 
+  gateway-service:
+    build:
+      context: ./gateway-service  # Path to gateway service directory
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"  # Gateway will be accessible on port 8000
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service
+      - restaurant-service
+      - order-service
+      - delivery-service
+      - payment-service
+      - notification-service
+    networks:
+      - microservices-net
+
 networks:
   microservices-net:
     driver: bridge

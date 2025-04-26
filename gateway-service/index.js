@@ -19,12 +19,12 @@ app.get('/', (req, res) => {
 });
 
 // Define service proxies
-app.use("/userApi", proxy("http://localhost:5000"));
-app.use("/restaurantApi", proxy("http://localhost:5001"));
-app.use("/orderApi", proxy("http://localhost:5002"));
-app.use("/deliveryApi", proxy("http://localhost:5003"));
-app.use("/paymentApi", proxy("http://localhost:5004"));
-app.use("/notificationApi", proxy("http://localhost:5005"));
+app.use("/userApi", proxy("http://user-service:5000"));
+app.use("/restaurantApi", proxy("http://restaurant-service:5001"));
+app.use("/orderApi", proxy("http://order-service:5002"));
+app.use("/deliveryApi", proxy("http://delivery-service:5003"));
+app.use("/paymentApi", proxy("http://payment-service:5004"));
+app.use("/notificationApi", proxy("http://notification-service:5005"));
 
 // Start gateway
 app.listen(PORT, () => {
