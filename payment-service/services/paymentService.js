@@ -101,7 +101,7 @@ export const handleWebhookEvent = async (req) => {
     });
 
     // Create order
-    const orderResponse = await axios.post("http://localhost:5002/api/order/from-stripe", {
+    const orderResponse = await axios.post("http://localhost:8000/orderApi/order/from-stripe", {
       customerId: metadata.customerId,
       customerName: metadata.customerName,
       customerEmail: metadata.customerEmail,
@@ -119,7 +119,7 @@ export const handleWebhookEvent = async (req) => {
     const { orderId } = orderResponse.data;
 
     // Notify user by email
-    await axios.post("http://localhost:5005/api/notifications/order-complete", {
+    await axios.post("http://localhost:8000/notificationApi/notifications/order-complete", {
       customerEmail: metadata.customerEmail,
       customerName: metadata.customerName,
       orderId,
@@ -130,7 +130,7 @@ export const handleWebhookEvent = async (req) => {
     console.log(`Order ${orderId} created and email sent.`);
 
     // Notify user by sms
-    await axios.post("http://localhost:5005/api/notifications/order-complete/sms", {
+    await axios.post("http://localhost:8000/notificationApi/notifications/order-complete/sms", {
       phoneNumber: metadata.customerPhone,
       userName: metadata.customerName,
       orderId,
