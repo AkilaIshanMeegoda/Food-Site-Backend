@@ -1,108 +1,138 @@
-// Implements the IMenuItemService interface
-const IMenuItemService = require('./IMenuService');
-const MenuItem = require('../models/menuItemModel');
-const Restaurant = require('../models/restaurantModel');
+// old menu service
+const MenuItem = require("../models/menuItemModel");
+const Restaurant = require("../models/restaurantModel");
 
-class MenuItemService extends IMenuItemService {
-  async createMenuItem(adminId, data) {
-    console.log("Im here in createMenuItem service");
-    const restaurant = await Restaurant.findOne({ adminId });
-    if (!restaurant) throw new Error("Restaurant not found");
-
-    const menuItem = new MenuItem({
-      restaurantId: restaurant._id,
-      restaurantOwnerId: restaurant.adminId,
-      restaurantName: restaurant.name,
-      ...data,
-    });
-
-    await menuItem.save();
-    return menuItem;
+exports.createMenuItem = async (adminId, data) => {
+  console.log("check details", adminId, data);
+  const restaurant = await Restaurant.findOne({ adminId });
+  if (!restaurant) {
+    throw new Error("Restaurant not found");
   }
 
-  async getMenuItems(adminId) {
-    console.log("Im here in getMenuItems service");
-    const restaurant = await Restaurant.findOne({ adminId });
-    if (!restaurant) throw new Error("Restaurant not found");
+  const menuItem = new MenuItem({
+    restaurantId: restaurant._id,
+    restaurantOwnerId: restaurant.adminId,
+    restaurantName: restaurant.name,
+    ...data,
+  });
 
-    return MenuItem.find({ restaurantId: restaurant._id });
+  await menuItem.save();
+  return menuItem;
+};
+
+exports.getMenuItems = async (adminId) => {
+  const restaurant = await Restaurant.findOne({ adminId });
+  if (!restaurant) {
+    throw new Error("Restaurant not found");
   }
 
-  async updateMenuItem(menuItemId, adminId, data) {
-    console.log("Im here in updateMenuItem service");
-    const restaurant = await Restaurant.findOne({ adminId });
-    if (!restaurant) throw new Error("Restaurant not found");
+  return await MenuItem.find({ restaurantId: restaurant._id });
+};
 
-    const menuItem = await MenuItem.findOneAndUpdate(
-      { _id: menuItemId, restaurantId: restaurant._id },
-      data,
-      { new: true }
-    );
-    if (!menuItem) throw new Error("Menu item not found");
-    return menuItem;
+exports.updateMenuItem = async (menuItemId, adminId, data) => {
+  const restaurant = await Restaurant.findOne({ adminId });
+  if (!restaurant) {
+    throw new Error("Restaurant not found");
   }
 
-  async deleteMenuItem(menuItemId, adminId) {
-    console.log("Im here in deleteMenuItem service");
-    const restaurant = await Restaurant.findOne({ adminId });
-    if (!restaurant) throw new Error("Restaurant not found");
+  const menuItem = await MenuItem.findOneAndUpdate(
+    { _id: menuItemId, restaurantId: restaurant._id },
+    data,
+    { new: true }
+  );
 
-    await MenuItem.findOneAndDelete({ _id: menuItemId, restaurantId: restaurant._id });
+  if (!menuItem) {
+    throw new Error("Menu item not found");
   }
 
-  async getMenuItemsByRestaurant(restaurantId) {
-    console.log("Im here in getMenuItemsByRestaurant service");
-    const restaurant = await Restaurant.findById(restaurantId);
-    if (!restaurant || !restaurant.isActive) throw new Error("Restaurant not found or inactive");
-    if (!restaurant.isAvailable) throw new Error("Restaurant is not available for orders");
+  return menuItem;
+};
 
-    return MenuItem.find({ restaurantId, isAvailable: true });
+exports.deleteMenuItem = async (menuItemId, adminId) => {
+  const restaurant = await Restaurant.findOne({ adminId });
+  if (!restaurant) {
+    throw new Error("Restaurant not found");
   }
 
-  async getMenuItemsByCategory(restaurantId, category) {
-    console.log("Im here in getMenuItemsByCategory service");
-    const restaurant = await Restaurant.findById(restaurantId);
-    if (!restaurant || !restaurant.isActive) throw new Error("Restaurant not found or inactive");
+  await MenuItem.findOneAndDelete({
+    _id: menuItemId,
+    restaurantId: restaurant._id,
+  });
+};
 
-    return MenuItem.find({ restaurantId, category, isAvailable: true });
+exports.getMenuItemsByRestaurant = async (restaurantId) => {
+  const restaurant = await Restaurant.findById(restaurantId);
+  if (!restaurant || !restaurant.isActive) {
+    throw new Error("Restaurant not found or inactive");
+  }
+  
+  if (!restaurant.isAvailable) {
+    throw new Error("Restaurant is not available for orders");
   }
 
-  async getAllMenuItemsByCategory(category) {
-    console.log("Im here in getAllMenuItemsByCategory service");
-    return MenuItem.find({ category });
+  return await MenuItem.find({ restaurantId, isAvailable: true });
+};
+
+exports.getMenuItemsByCategory = async (restaurantId, category) => {
+  const restaurant = await Restaurant.findById(restaurantId);
+  if (!restaurant || !restaurant.isActive) {
+    throw new Error("Restaurant not found or inactive");
   }
 
-  async getMenuItem(itemId, adminId) {
-    console.log("Im here in getMenuItem service");
-    const restaurant = await Restaurant.findOne({ adminId });
-    if (!restaurant) throw new Error("Restaurant not found for this owner");
+  return await MenuItem.find({
+    restaurantId,
+    category,
+    isAvailable: true,
+  });
+};
 
-    const menuItem = await MenuItem.findOne({
-      _id: itemId,
-      restaurantId: restaurant._id
-    }).populate("restaurantId", "name address");
+exports.getAllMenuItemsByCategory = async (category) => {
+  return await MenuItem.find({ category });
+};
 
-    if (!menuItem) throw new Error("Menu item not found or doesn't belong to your restaurant");
-    return menuItem;
+exports.getMenuItem = async (itemId, adminId) => {
+  console.log("get menu item", itemId, adminId);
+  // First verify the item belongs to the owner's restaurant
+  const restaurant = await Restaurant.findOne({ adminId: adminId });
+  console.log("checking restaurant", restaurant);
+  if (!restaurant) {
+    throw new Error("Restaurant not found for this owner");
   }
 
-  async getAllAvailableMenuItems() {
-    console.log("Im here in getAllAvailableMenuItems service");
-    const activeRestaurants = await Restaurant.find({ isActive: true, isAvailable: true });
-    const restaurantIds = activeRestaurants.map(r => r._id);
+  const menuItem = await MenuItem.findOne({
+    _id: itemId,
+    restaurantId: restaurant._id,
+  }).populate("restaurantId", "name address");
 
-    return MenuItem.find({ restaurantId: { $in: restaurantIds } })
-      .populate("restaurantId", "name address");
+  if (!menuItem) {
+    throw new Error("Menu item not found or doesn't belong to your restaurant");
   }
 
-  async viewItemDetail(itemId) {
-    console.log("Im here in viewItemDetail service");
-    const menuItem = await MenuItem.findById(itemId)
-      .populate("restaurantId", "name address contact")
-      .select("-createdAt -updatedAt -__v");
-    if (!menuItem) throw new Error("Menu item not found");
-    return menuItem;
-  }
-}
+  return menuItem;
+};
 
-module.exports = new MenuItemService();
+exports.getAllAvailableMenuItems = async () => {
+  // Get all menu items from active restaurants that are available
+  const activeRestaurants = await Restaurant.find({ isActive: true, isAvailable: true });
+  console.log("checking active restaurants", activeRestaurants);
+  const restaurantIds = activeRestaurants.map((r) => r._id);
+
+  return await MenuItem.find({
+    restaurantId: { $in: restaurantIds },
+  }).populate("restaurantId", "name address");
+};
+
+exports.viewItemDetail = async (itemId) => {
+  console.log("get menu item", itemId);
+  // First verify the item belongs to the owner's restaurant
+  const menuItem = await MenuItem.findById(itemId)
+    .populate("restaurantId", "name address contact")
+    .select("-createdAt -updatedAt -__v");
+  console.log("checking menuItem", menuItem);
+
+  if (!menuItem) {
+    throw new Error("Menu item not found");
+  }
+
+  return menuItem;
+};
