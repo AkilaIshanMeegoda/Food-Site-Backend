@@ -1,4 +1,3 @@
-const axios = require("axios");
 const Order = require("../models/OrderModel");
 
 // Create a new order
@@ -42,77 +41,6 @@ exports.createOrder = async (orderData) => {
     paymentMethod,
     orderStatus: "false",
     paymentStatus: "pending",
-  });
-
-  // Prepare payload for order complete email
-  const emailPayload = {
-    customerEmail: customerEmail,
-    customerName: customerName,
-    orderId: newOrder._id,
-    orderTotal: totalAmount,
-    orderItems: items,
-  };
-
-  try {
-    await axios.post("http://localhost:5005/api/notifications/order-complete", emailPayload);
-  } catch (emailError) {
-    console.error("Failed to send order complete email:", emailError.message);
-  }
-
-  // Prepare payload for order complete sms
-  const smsPayload = {
-    phoneNumber: customerPhone,
-    userName: customerName,
-    orderId: newOrder._id,
-  }
-
-  try {
-    await axios.post("http://localhost:5005/api/notifications/order-complete/sms", smsPayload);
-  } catch (error) {
-    console.error("Failed to send order complete sms:", error.message);
-  }
-
-  return await newOrder.save();
-};
-
-// create order for stripe (card) payments
-exports.createStripeOrder = async (orderData) => {
-  const {
-    customerId,
-    customerName,
-    customerEmail,
-    customerPhone,
-    restaurantId,
-    restaurantName,
-    items,
-    totalAmount,
-    deliveryAddress,
-    deliveryInstructions,
-    paymentMethod,
-    checkoutSessionId
-  } = orderData;
-
-  if (!customerId || !restaurantId || !items || !items.length) {
-    const error = new Error("Missing required fields");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const newOrder = new Order({
-    customerId,
-    customerName,
-    customerEmail,
-    customerPhone,
-    restaurantId,
-    restaurantName,
-    items,
-    totalAmount,
-    deliveryAddress,
-    deliveryInstructions,
-    paymentMethod,
-    orderStatus: "false",
-    paymentStatus: "paid",
-    checkoutSessionId
   });
 
   return await newOrder.save();

@@ -17,7 +17,7 @@ exports.getMenuItemsByRestaurant = async (req, res) => {
         const menuItems = await MenuItemService.getMenuItemsByRestaurant(req.params.id);
         res.status(200).json(menuItems);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch menu items" });
+        res.status(500).json({ error: err.message });
     }
 };
 
@@ -55,10 +55,10 @@ exports.getAllMenuItemsByCategory = async (req, res) => {
 exports.getAllAvailableMenuItems = async (req, res) => {
     try {
         const menuItems = await MenuItemService.getAllAvailableMenuItems();
-        console.log("check all items v", menuItems);
+        console.log("check all items ", menuItems);
         res.status(200).json(menuItems);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch menu items" });
+        res.status(500).json({ error: err.message });
     }
 };
 

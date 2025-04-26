@@ -1,3 +1,4 @@
+// old restaurant service 
 const Restaurant = require("../models/restaurantModel");
 
 exports.createRestaurant = async (adminId, data) => {

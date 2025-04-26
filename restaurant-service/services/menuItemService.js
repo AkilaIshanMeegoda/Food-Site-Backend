@@ -1,3 +1,4 @@
+// old menu service
 const MenuItem = require("../models/menuItemModel");
 const Restaurant = require("../models/restaurantModel");
 
@@ -64,6 +65,11 @@ exports.getMenuItemsByRestaurant = async (restaurantId) => {
   if (!restaurant || !restaurant.isActive) {
     throw new Error("Restaurant not found or inactive");
   }
+  
+  if (!restaurant.isAvailable) {
+    throw new Error("Restaurant is not available for orders");
+  }
+
   return await MenuItem.find({ restaurantId, isAvailable: true });
 };
 
@@ -107,7 +113,7 @@ exports.getMenuItem = async (itemId, adminId) => {
 
 exports.getAllAvailableMenuItems = async () => {
   // Get all menu items from active restaurants that are available
-  const activeRestaurants = await Restaurant.find({ isActive: true });
+  const activeRestaurants = await Restaurant.find({ isActive: true, isAvailable: true });
   console.log("checking active restaurants", activeRestaurants);
   const restaurantIds = activeRestaurants.map((r) => r._id);
 

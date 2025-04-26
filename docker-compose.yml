@@ -53,10 +53,24 @@ services:
       - user-service  # ensures user-service starts first
     networks:
       - microservices-net
-    
+      
+  payment-service:
+    build:
+      context: ./payment-service 
+      dockerfile: Dockerfile
+    ports:
+      - "5004:5004"
+
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service  # ensures user-service starts first
+    networks:
+      - microservices-net
+
   notification-service:
     build:
-      context: ./notification-service  # path to order service directory
+      context: ./notification-service 
       dockerfile: Dockerfile
     ports:
       - "5005:5005"
@@ -67,7 +81,25 @@ services:
       - user-service  # ensures user-service starts first
     networks:
       - microservices-net
-      
+
+  gateway-service:
+    build:
+      context: ./gateway-service  # Path to gateway service directory
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"  # Gateway will be accessible on port 8000
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service
+      - restaurant-service
+      - order-service
+      - delivery-service
+      - payment-service
+      - notification-service
+    networks:
+      - microservices-net
+
 networks:
   microservices-net:
     driver: bridge

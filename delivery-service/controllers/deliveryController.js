@@ -1,3 +1,4 @@
+
 const deliveryService = require('../services/deliveryService');
 
 //automatically assign the nearest and available delivery personnel for a order 
@@ -12,7 +13,7 @@ exports.assignDriver = async (req, res) => {
     console.error('Error in assignDriver:', error);
     res.status(500).json({ message: 'Server error' });
   }
-};
+}; 
 
 //accept delivery by the delivery personnel
 exports.acceptDelivery = async (req, res) => {
@@ -38,6 +39,7 @@ exports.acceptDelivery = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
     }
   };
+
 
 
 
