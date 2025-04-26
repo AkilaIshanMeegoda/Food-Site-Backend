@@ -21,7 +21,7 @@ const app = express();
 // Middleware
 app.use(cors({ origin: "*" }));
 
-app.use('/api/payment', paymentRoutes);
+app.use('/payment', paymentRoutes);
 
 // Database Connection and Server Startup
 async function startServer() {
