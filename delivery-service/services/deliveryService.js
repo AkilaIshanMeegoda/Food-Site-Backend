@@ -1,9 +1,10 @@
-const axios = require('axios');
-const geolib = require('geolib');
-const Delivery = require('../models/Delivery');
-const DeliveryPersonnel = require('../models/DeliveryPersonnel');
+const axios = require("axios");
+const geolib = require("geolib");
+const Delivery = require("../models/Delivery");
+const DeliveryPersonnel = require("../models/DeliveryPersonnel");
+require('dotenv').config();
 
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const NOMINATIM_URL = process.env.NOMINATIM_URL;
 
 //Automatically assign a nearest and available delivery personnel for a order
 exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
