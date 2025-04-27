@@ -15,9 +15,9 @@ const port = process.env.PORT || 5001;
 
 app.use(bodyParser.json());
 app.use(cors({ origin: "*" }));
-app.use("/api/restaurants", restaurantRoutes);
-app.use("/api/menu-items", menuItemRoutes);
-app.use("/api/public", publicRoutes);
+app.use("/restaurants", restaurantRoutes);
+app.use("/menu-items", menuItemRoutes);
+app.use("/public", publicRoutes);
 
 app.listen(port, () => {
     console.log(`Restaurant service started at http://localhost:${port}`);
