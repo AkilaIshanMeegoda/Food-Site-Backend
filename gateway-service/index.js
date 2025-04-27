@@ -11,11 +11,19 @@ const PORT = process.env.GATEWAY_PORT || 8000;
 
 // Enable CORS for all incoming requests (clients talk to gateway only)
 app.use(cors());
-app.use(express.json());
+
+// IMPORTANT: Skip body parsing for Stripe webhook
+app.use((req, res, next) => {
+  if (req.originalUrl === "/paymentApi/payment/webhook") {
+    next(); // Do not parse body
+  } else {
+    express.json()(req, res, next);
+  }
+});
 
 // Gateway root
-app.get('/', (req, res) => {
-  res.send('Hello from Gateway Service');
+app.get("/", (req, res) => {
+  res.send("Hello from Gateway Service");
 });
 
 // Define service proxies
