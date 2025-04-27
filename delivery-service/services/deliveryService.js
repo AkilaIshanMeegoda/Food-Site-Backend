@@ -85,7 +85,7 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
     for (const driver of driversToAssign) {
       // Send email to delivery personnel
       try {
-        await axios.post("http://notification-service:5005/api/notifications/order-delivery-assign", {
+        await axios.post("http://notification-service:5005/notifications/order-delivery-assign", {
           email: driver.email,
           orderId: orderId
         });
@@ -95,7 +95,7 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
       
       // Send SMS to delivery personnel
       try {
-        await axios.post("http://notification-service:5005/api/notifications/delivery-personnel/sms", {
+        await axios.post("http://notification-service:5005/notifications/delivery-personnel/sms", {
           phoneNumber: driver.phone,
           orderId: orderId
         });
