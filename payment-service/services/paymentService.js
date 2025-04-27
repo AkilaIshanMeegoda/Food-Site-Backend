@@ -61,8 +61,8 @@ export const createCheckoutSession = async (orderData) => {
     mode: "payment",
     line_items,
     customer_email: customerEmail,
-    success_url: `http://localhost:${CLIENT_PORT}/checkout/success`,
-    cancel_url: `http://localhost:${CLIENT_PORT}/checkout/cancel`,
+    success_url: `http://payment-service:${CLIENT_PORT}/checkout/success`,
+    cancel_url: `http://payment-service:${CLIENT_PORT}/checkout/cancel`,
     metadata: {
       customerId,
       customerName,
@@ -99,9 +99,8 @@ export const handleWebhookEvent = async (req) => {
       currency: session.currency,
       customerEmail: session.customer_email,
     });
-
     // Create order
-    const orderResponse = await axios.post("http://localhost:8000/orderApi/order/from-stripe", {
+    const orderResponse = await axios.post("http://payment-service:5002/orderApi/order/from-stripe", {
       customerId: metadata.customerId,
       customerName: metadata.customerName,
       customerEmail: metadata.customerEmail,
@@ -119,7 +118,7 @@ export const handleWebhookEvent = async (req) => {
     const { orderId } = orderResponse.data;
 
     // Notify user by email
-    await axios.post("http://localhost:8000/notificationApi/notifications/order-complete", {
+    await axios.post("http://notification-service:5005/notificationApi/notifications/order-complete", {
       customerEmail: metadata.customerEmail,
       customerName: metadata.customerName,
       orderId,
@@ -130,7 +129,7 @@ export const handleWebhookEvent = async (req) => {
     console.log(`Order ${orderId} created and email sent.`);
 
     // Notify user by sms
-    await axios.post("http://localhost:8000/notificationApi/notifications/order-complete/sms", {
+    await axios.post("http://notification-service:5005/notificationApi/notifications/order-complete/sms", {
       phoneNumber: metadata.customerPhone,
       userName: metadata.customerName,
       orderId,
