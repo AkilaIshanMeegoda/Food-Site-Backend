@@ -46,6 +46,51 @@ exports.createOrder = async (orderData) => {
   return await newOrder.save();
 };
 
+exports.createStripeOrder = async (orderData) => {
+  const {
+    customerId,
+    customerName,
+    customerEmail,
+    customerPhone,
+    restaurantId,
+    restaurantName,
+    items,
+    totalAmount,
+    deliveryAddress,
+    deliveryInstructions,
+    paymentMethod,
+    checkoutSessionId,
+  } = orderData;
+
+  // Validate required fields
+  if (!customerId || !restaurantId || !items || !items.length) {
+    const error = new Error("Missing required fields");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const newOrder = new Order({
+    customerId,
+    customerName,
+    customerEmail,
+    customerPhone,
+    restaurantId,
+    restaurantName,
+    items,
+    totalAmount,
+    deliveryAddress,
+    deliveryInstructions,
+    paymentMethod,
+    orderStatus: "false",
+    paymentStatus: "paid",
+    checkoutSessionId,
+  });
+
+  const savedOrder = await newOrder.save();
+
+  return savedOrder;
+};
+
 // Update an order
 exports.updateOrder = async (orderId, updateData, user) => {
   // Find the order first
