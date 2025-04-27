@@ -7,7 +7,7 @@ const { verifyDeliveryPersonnel, verifyRestaurantAdmin, verifyCustomer } = requi
 router.post('/assign', verifyRestaurantAdmin, assignDriver);
 router.post('/accept', verifyDeliveryPersonnel, acceptDelivery);
 router.put('/update-status/:orderId', verifyDeliveryPersonnel, updateStatus);
-router.get("/order/:orderId", verifyCustomer, getDeliveryByOrderId);
+router.get("/:orderId", verifyCustomer, getDeliveryByOrderId);
 
 
 
