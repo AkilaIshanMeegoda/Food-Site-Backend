@@ -1,9 +1,10 @@
-const axios = require('axios');
-const geolib = require('geolib');
-const Delivery = require('../models/Delivery');
-const DeliveryPersonnel = require('../models/DeliveryPersonnel');
+const axios = require("axios");
+const geolib = require("geolib");
+const Delivery = require("../models/Delivery");
+const DeliveryPersonnel = require("../models/DeliveryPersonnel");
+require('dotenv').config();
 
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const NOMINATIM_URL = process.env.NOMINATIM_URL;
 
 //Automatically assign a nearest and available delivery personnel for a order
 exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
@@ -84,7 +85,7 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
     for (const driver of driversToAssign) {
       // Send email to delivery personnel
       try {
-        await axios.post("http://notification-service:5005/api/notifications/order-delivery-assign", {
+        await axios.post("http://notification-service:5005/notifications/order-delivery-assign", {
           email: driver.email,
           orderId: orderId
         });
@@ -94,7 +95,7 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
       
       // Send SMS to delivery personnel
       try {
-        await axios.post("http://notification-service:5005/api/notifications/delivery-personnel/sms", {
+        await axios.post("http://notification-service:5005/notifications/delivery-personnel/sms", {
           phoneNumber: driver.phone,
           orderId: orderId
         });
@@ -122,7 +123,7 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
 };
 
 //accept the delivery by driver
-exports.acceptDelivery = async (orderId, deliveryPersonnelId) => {
+exports.acceptDelivery = async (orderId, deliveryPersonnelId, token) => {
   try {
     const delivery = await Delivery.findOne({ orderId, assignedDrivers: { $in: [deliveryPersonnelId] } });
 
@@ -137,6 +138,18 @@ exports.acceptDelivery = async (orderId, deliveryPersonnelId) => {
 
     await DeliveryPersonnel.updateOne({ _id: deliveryPersonnelId }, { status: 'busy' });
 
+    // Call Order Service API to update order status to 'accepted'
+    await axios.patch(`http://order-service:5002/order/${orderId}/status`, 
+      {status: 'accepted'},
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token // Pass the token
+
+        }
+      }
+    );
+
     return { status: 200, data: { message: 'Delivery accepted' } };
   } catch (error) {
     console.error('Error in acceptDelivery:', error);
@@ -145,7 +158,7 @@ exports.acceptDelivery = async (orderId, deliveryPersonnelId) => {
 };
 
   
-exports.updateStatus = async (orderId, status) => {
+exports.updateStatus = async (orderId, status, token) => {
     try {
       const delivery = await Delivery.findOne({ orderId });
   
@@ -160,6 +173,19 @@ exports.updateStatus = async (orderId, status) => {
         await DeliveryPersonnel.updateOne({ _id: delivery.deliveryPersonnelId }, { status: 'available' });
       }
   
+      // Call Order Service API to update order status to match delivery status
+    await axios.patch(`http://order-service:5002/order/${orderId}/status`,
+      {status: status},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token // Pass the token
+  
+          }
+        }
+      
+    );
+
       return { status: 200, data: { message: 'Delivery status updated' } };
     } catch (error) {
       console.error('Error in updateStatus:', error);

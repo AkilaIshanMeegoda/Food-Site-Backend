@@ -1,8 +1,9 @@
 const DeliveryPersonnel = require("../models/DeliveryPersonnel");
-const axios = require('axios');
 const Delivery = require("../models/Delivery");
+const axios = require("axios");
+require('dotenv').config();
 
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const NOMINATIM_URL = process.env.NOMINATIM_URL;
 
 const registerDeliveryPersonnel = async (userId, name, phone, email, vehicleType, vehicleNumber, currentLocation, token) => {
   // Check if already registered
@@ -46,7 +47,7 @@ const registerDeliveryPersonnel = async (userId, name, phone, email, vehicleType
 
 
     const response = await axios.put(
-      `http://user-service:5000/${userId}/role`,
+      `http://user-service:5000/user/${userId}/role`,
       { role: 'delivery_personnel' },
       {
         headers: {
@@ -106,5 +107,3 @@ module.exports = {
   getDeliveriesByPersonnel
   
 };
-
-
