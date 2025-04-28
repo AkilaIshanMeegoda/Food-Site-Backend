@@ -1,9 +1,10 @@
-const axios = require('axios');
-const geolib = require('geolib');
-const Delivery = require('../models/Delivery');
-const DeliveryPersonnel = require('../models/DeliveryPersonnel');
+const axios = require("axios");
+const geolib = require("geolib");
+const Delivery = require("../models/Delivery");
+const DeliveryPersonnel = require("../models/DeliveryPersonnel");
+require('dotenv').config();
 
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const NOMINATIM_URL = process.env.NOMINATIM_URL;
 
 //Automatically assign a nearest and available delivery personnel for a order
 exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
@@ -84,7 +85,7 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
     for (const driver of driversToAssign) {
       // Send email to delivery personnel
       try {
-        await axios.post("http://notification-service:5005/api/notifications/order-delivery-assign", {
+        await axios.post("http://notification-service:5005/notifications/order-delivery-assign", {
           email: driver.email,
           orderId: orderId
         });
@@ -94,7 +95,7 @@ exports.assignDriver = async (orderId, pickupAddress, dropoffAddress) => {
       
       // Send SMS to delivery personnel
       try {
-        await axios.post("http://notification-service:5005/api/notifications/delivery-personnel/sms", {
+        await axios.post("http://notification-service:5005/notifications/delivery-personnel/sms", {
           phoneNumber: driver.phone,
           orderId: orderId
         });
