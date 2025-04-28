@@ -50,16 +50,43 @@ export const createCheckoutSession = async (orderData) => {
   const tax = subTotal * 0.05;
   const totalAmount = (subTotal + deliveryFee + tax).toFixed(2);
 
-  const line_items = items.map((item) => ({
-    price_data: {
-      currency: "lkr",
-      product_data: {
-        name: item.name,
+  // const line_items = items.map((item) => ({
+  //   price_data: {
+  //     currency: "lkr",
+  //     product_data: {
+  //       name: item.name,
+  //     },
+  //     unit_amount: Math.round(item.price * 100),
+  //   },
+  //   quantity: item.quantity,
+  // }));
+
+  const line_items = [
+    ...items.map((item) => ({
+      price_data: {
+        currency: "lkr",
+        product_data: { name: item.name },
+        unit_amount: Math.round(item.price * 100),
       },
-      unit_amount: Math.round(item.price * 100),
+      quantity: item.quantity,
+    })),
+    {
+      price_data: {
+        currency: "lkr",
+        product_data: { name: "Delivery Fee" },
+        unit_amount: Math.round(deliveryFee * 100), // delivery fee in cents
+      },
+      quantity: 1,
     },
-    quantity: item.quantity,
-  }));
+    {
+      price_data: {
+        currency: "lkr",
+        product_data: { name: "Tax" },
+        unit_amount: Math.round(tax * 100), // tax in cents
+      },
+      quantity: 1,
+    },
+  ];
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
