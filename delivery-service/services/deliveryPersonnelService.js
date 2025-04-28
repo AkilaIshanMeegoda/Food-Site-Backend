@@ -47,7 +47,7 @@ const registerDeliveryPersonnel = async (userId, name, phone, email, vehicleType
 
 
     const response = await axios.put(
-      `http://user-service:5000/${userId}/role`,
+      `http://user-service:5000/user/${userId}/role`,
       { role: 'delivery_personnel' },
       {
         headers: {
