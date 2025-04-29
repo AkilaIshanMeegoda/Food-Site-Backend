@@ -24,7 +24,7 @@ const registerDeliveryPersonnel = async (userId, name, phone, email, vehicleType
 
   // Save delivery personnel data
   const personnel = new DeliveryPersonnel({
-    _id: userId, // 👈 setting _id to user ID
+    _id: userId, //setting _id to user ID
     userId, // Still keeping this for clarity & relation
     name,
     phone,
