@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
-
+// to verify the restaurant admin token
 exports.verifyRestaurantAdmin = (req, res, next) => {
     const authHeader = req.header("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -21,8 +21,7 @@ exports.verifyRestaurantAdmin = (req, res, next) => {
         res.status(401).json({ error: "Invalid token" });
     }
 };
-
-// auth/middleware.js
+// to verify the customer token
 exports.verifyCustomer = (req, res, next) => {
     const authHeader = req.header("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -42,7 +41,7 @@ exports.verifyCustomer = (req, res, next) => {
         res.status(401).json({ error: "Invalid token" });
     }
 };
-
+// to verify the super admin token
 exports.verifySuperAdmin = (req, res, next) => {
     const authHeader = req.header("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {

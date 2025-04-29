@@ -93,7 +93,7 @@ exports.getUserRole = async (userId) => {
 
 exports.registerRestaurantOwner = async (userId, restaurantData, token) => {
   // Make request to restaurant service
-  const response = await fetch("http://restaurant-service:5001/api/restaurants/", {
+  const response = await fetch("http://restaurant-service:5001/restaurants/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
