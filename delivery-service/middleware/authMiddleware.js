@@ -48,7 +48,7 @@ const verifyCustomer = (req, res, next) => {
     }
 };
 
-
+// Middleware to verify JWT Token and check RestaurantAdmin role
 const verifyRestaurantAdmin = (req, res, next) => {
     const authHeader = req.header("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
