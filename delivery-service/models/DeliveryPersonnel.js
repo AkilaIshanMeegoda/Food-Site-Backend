@@ -2,12 +2,12 @@ const mongoose = require("mongoose");
 
 const deliveryPersonnelSchema = new mongoose.Schema({
   _id: {
-    type: mongoose.Schema.Types.ObjectId, // Use the user's _id directly as this document's _id
+    type: mongoose.Schema.Types.ObjectId, 
     required: true,
-    ref: 'User' // Optional but recommended for population
+    ref: 'User' 
   },
   userId: {
-    type: mongoose.Schema.Types.ObjectId, // Should match the same type as _id
+    type: mongoose.Schema.Types.ObjectId, 
     required: true,
     ref: 'User'
   },

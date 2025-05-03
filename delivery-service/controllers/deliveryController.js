@@ -19,7 +19,9 @@ exports.assignDriver = async (req, res) => {
 exports.acceptDelivery = async (req, res) => {
     try {
       const { orderId, deliveryPersonnelId } = req.body;
-      const result = await deliveryService.acceptDelivery(orderId, deliveryPersonnelId);
+      const token = req.headers.authorization; // Get the token
+
+      const result = await deliveryService.acceptDelivery(orderId, deliveryPersonnelId, token);
       res.status(result.status).json(result.data);
     } catch (error) {
       console.error('Error in acceptDelivery:', error);
@@ -32,7 +34,9 @@ exports.acceptDelivery = async (req, res) => {
     try {
       const { orderId } = req.params;
       const { status } = req.body;
-      const result = await deliveryService.updateStatus(orderId, status);
+      const token = req.headers.authorization; // Get the token
+
+      const result = await deliveryService.updateStatus(orderId, status, token);
       res.status(result.status).json(result.data);
     } catch (error) {
       console.error('Error in updateStatus:', error);
